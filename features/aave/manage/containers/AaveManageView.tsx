@@ -23,6 +23,9 @@ import {
   ManageAaveStateMachineContextProvider,
   useManageAaveStateMachineContext,
 } from './AaveManageStateMachineContext'
+import { Banner } from '../../../../components/Banner'
+import { SidebarMigrateToOptimism } from '../sidebars/SidebarMigrateToOptimism'
+import { Hackathon } from '../sidebars/Hackathon'
 
 interface AaveManageViewPositionViewProps {
   address: string
@@ -74,6 +77,11 @@ function AaveManageContainer({
                   <AaveFaq />
                 </Card>
               ),
+            },
+            {
+              value: 'hacky-mchackface',
+              label: t('system.migrate'),
+              content: <Hackathon />,
             },
           ]}
         />

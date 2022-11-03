@@ -5499,10 +5499,10 @@
   dependencies:
     bignumber.js "^9.0.1"
 
-"@oasisdex/web3-context@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@oasisdex/web3-context/-/web3-context-0.1.0.tgz#79b8e15b59f1e567b332a5dfb88ad37046e9b4bd"
-  integrity sha512-JpLUz5JpOorvu5+6CxBMwX1vti3ckHdh4VA+LO6Z43sWeaAafJnqIXjQXAqnsmT4lvZa7SgHY7jpIplvtxT7Sg==
+"@oasisdex/web3-context@0.1.1-alpha.0":
+  version "0.1.1-alpha.0"
+  resolved "https://registry.yarnpkg.com/@oasisdex/web3-context/-/web3-context-0.1.1-alpha.0.tgz#b3a2b055c79ac1a962e34c06b9c12e2db8d859e8"
+  integrity sha512-If8IXfeSGXXmXGSZcb/NCFNAjldbvJ0fx+2XmQ6d4GWtUeQsFyISwBGyE4WkeKHnqJQ+s/ZpCWTamiOEF61oBw==
   dependencies:
     "@oasisdex/connectors" "^0.1.0"
     "@oasisdex/utils" "^0.0.8"

@@ -654,6 +654,21 @@ export const tokens = [
     bannerGif: staticFilesRuntimeUrl('/static/img/tokens/steth-eth.gif'),
     tags: [],
   },
+  {
+    symbol: 'aWETH',
+    precision: 18,
+    digits: 5,
+    digitsInstant: 2,
+    name: 'stETH/ETH',
+    icon: 'aave_steth_eth',
+    iconCircle: 'aave_steth_eth',
+    iconColor: 'aave_steth_eth',
+    color: '#E2F7F9',
+    background: 'linear-gradient(160.47deg, #E2F7F9 0.35%, #D3F3F5 99.18%), #000000',
+    bannerIcon: staticFilesRuntimeUrl('/static/img/tokens/steth-eth.png'),
+    bannerGif: staticFilesRuntimeUrl('/static/img/tokens/steth-eth.gif'),
+    tags: [],
+  },
 ]
 
 // ticker comes from coinpaprika api https://api.coinpaprika.com/v1/tickers

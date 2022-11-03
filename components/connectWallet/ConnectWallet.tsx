@@ -2,19 +2,14 @@ import { SafeAppConnector } from '@gnosis.pm/safe-apps-web3-react'
 import { Icon } from '@makerdao/dai-ui-icons'
 import { MewConnectConnector } from '@myetherwallet/mewconnect-connector'
 import { LedgerConnector, TrezorConnector } from '@oasisdex/connectors'
-import {
-  ConnectionKind,
-  getNetworkId,
-  Web3Context,
-  Web3ContextNotConnected,
-} from '@oasisdex/web3-context'
+import { ConnectionKind, Web3Context, Web3ContextNotConnected } from '@oasisdex/web3-context'
 import { UnsupportedChainIdError } from '@web3-react/core'
 import { InjectedConnector } from '@web3-react/injected-connector'
 import { NetworkConnector } from '@web3-react/network-connector'
 import { PortisConnector } from '@web3-react/portis-connector'
 import { WalletConnectConnector } from '@web3-react/walletconnect-connector'
 import { WalletLinkConnector } from '@web3-react/walletlink-connector'
-import { dappName, networksById, pollingInterval } from 'blockchain/config'
+import { dappName, networksById, networksByName, pollingInterval } from 'blockchain/config'
 import browserDetect from 'browser-detect'
 import { useAppContext } from 'components/AppContextProvider'
 import { LedgerAccountSelection } from 'components/connectWallet/LedgerAccountSelection'
@@ -279,6 +274,16 @@ interface ConnectionDetail {
   friendlyName: string
   connectIcon?: string
   userIcon?: UserWalletIconName
+}
+
+function getNetworkId(): number {
+  const networkName = new URL(window.location.href).searchParams.get('network')
+
+  if (!networkName) {
+    throw new Error('Network name is not defined')
+  }
+
+  return parseInt(networksByName[networkName].id)
 }
 
 const connectionDetails: Record<WalletKind, ConnectionDetail> = {

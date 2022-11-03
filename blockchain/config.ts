@@ -129,6 +129,7 @@ const tokensMainnet = {
   USDP: contractDesc(erc20, '0x8E870D67F660D95d5be530380D0eC0bd388289E1'),
   WSTETH: contractDesc(erc20, mainnetAddresses['WSTETH']),
   RENBTC: contractDesc(erc20, mainnetAddresses['RENBTC']),
+  aWETH: contractDesc(erc20, '0x030bA81f1c18d280636F32af80b9AAd02Cf0854e'),
 } as Dictionary<ContractDesc>
 const protoMain = {
   id: '1',
@@ -444,8 +445,29 @@ const hardhat: NetworkConfig = {
   ), */
 }
 
-export const networksById = keyBy([main, kovan, hardhat, goerli], 'id')
-export const networksByName = keyBy([main, kovan, hardhat, goerli], 'name')
+const optimism: NetworkConfig = {
+  ...protoMain,
+  id: '10',
+  name: 'optimism',
+  label: 'optimism',
+  infuraUrl: `http://localhost:8545`,
+  infuraUrlWS: `ws://localhost:8545`,
+  cacheApi: 'https://oazo-bcache-mainnet-staging.new.oasis.app/api/v1',
+  /* dssMultiplyProxyActions: contractDesc(
+    dssMultiplyProxyActions,
+    getConfig()?.publicRuntimeConfig?.multiplyProxyActions ||
+      '0x2a49eae5cca3f050ebec729cf90cc910fadaf7a2',
+  ),
+  // guniProxyActions: contractDesc(guniProxyActions, '0xBEc49fA140aCaA83533fB00A2BB19bDdd0290f25'),
+  defaultExchange: contractDesc(
+    exchange,
+    getConfig()?.publicRuntimeConfig?.exchangeAddress ||
+      '0x4C4a2f8c81640e47606d3fd77B353E87Ba015584',
+  ), */
+}
+
+export const networksById = keyBy([main, kovan, hardhat, goerli, optimism], 'id')
+export const networksByName = keyBy([main, kovan, hardhat, goerli, optimism], 'name')
 
 export const dappName = 'Oasis'
 export const pollingInterval = 12000

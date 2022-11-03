@@ -1,4 +1,4 @@
-import { createSend, SendFunction } from '@oasisdex/transactions'
+import { createSend, SendFunction, TxStatus } from '@oasisdex/transactions'
 import { createWeb3Context$ } from '@oasisdex/web3-context'
 import { trackingEvents } from 'analytics/analytics'
 import { mixpanelIdentify } from 'analytics/mixpanel'
@@ -36,6 +36,7 @@ import {
 } from 'blockchain/calls/cropper'
 import { dogIlk } from 'blockchain/calls/dog'
 import {
+  approve,
   ApproveData,
   DisapproveData,
   tokenAllowance,
@@ -264,9 +265,11 @@ import { isEqual, mapValues, memoize } from 'lodash'
 import moment from 'moment'
 import { combineLatest, Observable, of, Subject } from 'rxjs'
 import {
+  catchError,
   distinctUntilChanged,
   distinctUntilKeyChanged,
   filter,
+  first,
   map,
   mergeMap,
   shareReplay,
@@ -279,6 +282,14 @@ import { OperationExecutorTxMeta } from '../blockchain/calls/operationExecutor'
 import { prepareAaveAvailableLiquidityInUSD$ } from '../features/aave/helpers/aavePrepareAvailableLiquidity'
 import { hasAavePosition$ } from '../features/aave/helpers/hasAavePosition'
 import curry from 'ramda/src/curry'
+import {
+  AAVE_WETH_GATEWAY,
+  AaveWethGatewayTxDepositData,
+  depositETH,
+  withdrawETH,
+} from '../blockchain/calls/aave/aaveWethGateway'
+import { TxMetaKind } from '../blockchain/calls/txMeta'
+import { L1_ADDRESS, L2_ADDRESS } from '../features/aave/manage/sidebars/SidebarMigrateToOptimism'
 export type TxData =
   | OpenData
   | DepositAndGenerateData
@@ -300,6 +311,7 @@ export type TxData =
   | AutomationBotAddAggregatorTriggerData
   | AutomationBotRemoveTriggersData
   | OperationExecutorTxMeta
+  | AaveWethGatewayTxDepositData
 
 export interface TxHelpers {
   send: SendTransactionFunction<TxData>
@@ -605,7 +617,13 @@ export function setupAppContext() {
     },
   )
 
-  const tokenBalance$ = observe(onEveryBlock$, context$, tokenBalance)
+  const tokenBalance$ = observe(
+    onEveryBlock$,
+    context$,
+    tokenBalance,
+    ({ token, account }) => token + account,
+  )
+
   const tokenBalanceLean$ = observe(once$, context$, tokenBalance)
 
   const balance$ = memoize(
@@ -1120,6 +1138,120 @@ export function setupAppContext() {
 
   const hasActiveAavePosition$ = hasActiveAavePosition(web3Context$, hasAave$)
 
+  function migratePosition$(txnHelpers$: Observable<TxHelpers>, migrate$: Observable<BigNumber>) {
+    console.log('recreating migratePosition$')
+    return combineLatest(txnHelpers$, migrate$).pipe(
+      switchMap(([txnHelpers, migrateAmount]) => {
+        console.log(`migrateAmount ${migrateAmount}`)
+        return combineLatest(
+          txnHelpers.sendWithGasEstimation(approve, {
+            token: 'aWETH',
+            amount: migrateAmount,
+            spender: AAVE_WETH_GATEWAY,
+            kind: TxMetaKind.approve,
+          }),
+          of(txnHelpers),
+          of(migrateAmount),
+        )
+      }),
+      filter(([txData]) => {
+        console.log(`txData.status approve ${txData.status}`)
+        return txData.status === TxStatus.Success
+      }),
+      first(),
+      switchMap(([_, txnHelpers, migrateAmount]) => {
+        return combineLatest(
+          txnHelpers.sendWithGasEstimation(withdrawETH, {
+            kind: TxMetaKind.depositAave,
+            withdrawAmount: migrateAmount,
+            address: L1_ADDRESS,
+          }),
+          of(txnHelpers),
+          of(migrateAmount),
+        )
+      }),
+      filter(([txData]) => {
+        console.log(`txData.status withdrawETH ${txData.status}`)
+        return txData.status === TxStatus.Success
+      }),
+      first(),
+      switchMap(([_, txnHelpers, migrateAmount]) => {
+        return txnHelpers.sendWithGasEstimation(depositETH, {
+          kind: TxMetaKind.depositAave,
+          depositAmount: migrateAmount,
+          address: L2_ADDRESS,
+        })
+      }),
+      filter((txData) => {
+        return txData.status === TxStatus.Success
+      }),
+      first(),
+      switchMap(() => {
+        const w = window as any
+        if (w && w.ethereum) {
+          return of(
+            w.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [
+                {
+                  chainId: '0x' + parseInt('10').toString(16),
+                  chainName: 'Optimism',
+                  nativeCurrency: {
+                    name: 'Ether',
+                    symbol: 'ETH',
+                    decimals: 18,
+                  },
+                  rpcUrls: ['https://mainnet.optimism.io'],
+                  blockExplorerUrls: ['https://optimistic.etherscan.io/'],
+                },
+              ],
+            }),
+          )
+        } else {
+          return of(null)
+        }
+      }),
+      catchError((err) => {
+        throw 'error in source. Details: ' + err
+      }),
+    )
+  }
+
+  function withdrawFromAavePosition$(
+    txnHelpers$: Observable<TxHelpers>,
+    withdraw$: Observable<BigNumber>,
+  ) {
+    console.log('recreating withdrawFromAavePosition$')
+    return combineLatest(txnHelpers$, withdraw$).pipe(
+      switchMap(([txnHelpers, withdrawAmount]) => {
+        return combineLatest(
+          txnHelpers.sendWithGasEstimation(approve, {
+            token: 'aWETH',
+            amount: withdrawAmount,
+            spender: AAVE_WETH_GATEWAY,
+            kind: TxMetaKind.approve,
+          }),
+          of(txnHelpers),
+          of(withdrawAmount),
+        )
+      }),
+      filter(([txData]) => {
+        console.log('txData', txData)
+        return txData.status === TxStatus.Success
+      }),
+      switchMap(([_, txnHelpers, withdrawAmount]) => {
+        return txnHelpers.sendWithGasEstimation(withdrawETH, {
+          kind: TxMetaKind.depositAave,
+          withdrawAmount: withdrawAmount,
+          address: L1_ADDRESS,
+        })
+      }),
+    )
+  }
+
+  const withdrawal$ = new Subject<BigNumber>()
+  const migrationClick$ = new Subject<BigNumber>()
+
   return {
     web3Context$,
     web3ContextConnected$,
@@ -1179,6 +1311,11 @@ export function setupAppContext() {
     aaveAvailableLiquidityETH$,
     aaveUserAccountData$,
     hasActiveAavePosition$,
+    tokenBalance$,
+    withdrawal$,
+    migrationClick$,
+    withdrawFromAavePosition$: withdrawFromAavePosition$(txHelpers$, withdrawal$),
+    migrateFromAavePosition$: migratePosition$(txHelpers$, migrationClick$),
   }
 }
 

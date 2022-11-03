@@ -55,7 +55,7 @@
     "@oasisdex/oasis-actions": "0.0.4-alpha.16",
     "@oasisdex/transactions": "^0.1.0",
     "@oasisdex/utils": "^0.0.8",
-    "@oasisdex/web3-context": "^0.1.0",
+    "@oasisdex/web3-context": "0.1.1-alpha.0",
     "@prisma/client": "^3.14.0",
     "@sentry/nextjs": "^6.17.7",
     "@storybook/storybook-deployer": "^2.8.11",

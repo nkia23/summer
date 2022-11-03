@@ -6,6 +6,7 @@ import { ProductCardBorrow } from '../../components/productCards/ProductCardBorr
 import { ProductCardsFilter } from '../../components/productCards/ProductCardsFilter'
 import { ProductHeader } from '../../components/ProductHeader'
 import { borrowPageCardsData, productCardsConfig } from '../../helpers/productCards'
+import { Hackathon } from '../aave/manage/sidebars/Hackathon'
 
 export function BorrowView() {
   const { t } = useTranslation()
@@ -19,21 +20,7 @@ export function BorrowView() {
         mb: ['123px', '187px'],
       }}
     >
-      <ProductHeader
-        title={t('product-page.borrow.title')}
-        description={t('product-page.borrow.description')}
-        link={{
-          href: 'https://kb.oasis.app/help/what-is-oasis-borrow ',
-          text: t('product-page.borrow.link'),
-        }}
-        scrollToId={tab}
-      />
-      <ProductCardsFilter
-        filters={productCardsConfig.borrow.cardsFilters}
-        selectedFilter={tab}
-        productCardComponent={ProductCardBorrow}
-        filterCardsFunction={borrowPageCardsData}
-      />
+      <Hackathon />
     </Grid>
   )
 }
