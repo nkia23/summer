@@ -2,15 +2,19 @@ import { InfoSection } from 'components/infoSection/InfoSection'
 import { MessageCard } from 'components/MessageCard'
 import { AppSpinner } from 'helpers/AppSpinner'
 import { useToggle } from 'helpers/useToggle'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Button, Card, Flex, Heading, Input, Text } from 'theme-ui'
+import Web3 from 'web3'
 
 // export interface NFTDomainFormProps {}
 
-const steps = ['Domain verification', 'Transaction', 'Order confirmation']
+const steps = ['Switch network', 'Domain verification', 'Transaction', 'Order confirmation']
 
 export function NFTDomainForm() {
-  const [step, setStep] = useState<number>(1)
+  const ethereum = (window as any).ethereum
+
+  const [chainId, setChainId] = useState<string>()
+  const [step, setStep] = useState<number>(0)
   const [domain, setDomain] = useState<string>('')
   const [isLoading, , setIsLoading] = useToggle(false)
   const [errors, setErrors] = useState<string[]>([])
@@ -20,8 +24,41 @@ export function NFTDomainForm() {
   const [shouldTransactionFail, toggleShouldTransactionFail] = useToggle(false)
 
   const isPrimaryDisabled = (step === 1 && domain === '') || isLoading || step === 3
-  const isSecondaryHidden = step === 1 || step === 3
+  const isSecondaryHidden = step === 0 || step === 1 || step === 3
 
+  useEffect(() => {
+    async function getChainId() {
+      setChainId(await ethereum.request({ method: 'eth_chainId' }))
+    }
+    void getChainId()
+  })
+  ethereum.on('networkChanged', function (networkId: number) {
+    setChainId(Web3.utils.utf8ToHex(networkId.toString()))
+  })
+
+  useEffect(() => {
+    if (chainId === '0x66eed') {
+      setStep(1)
+      setIsLoading(false)
+    } else setStep(0)
+  }, [chainId])
+
+  function switchNetwork() {
+    setIsLoading(true)
+
+    ethereum.request({
+      method: 'wallet_addEthereumChain',
+      params: [
+        {
+          blockExplorerUrls: ['https://goerli.arbiscan.io'],
+          chainId: '0x66EED',
+          chainName: 'Arbitrum Goerli Testnet',
+          nativeCurrency: { decimals: 18, name: 'ETH', symbol: 'ETH' },
+          rpcUrls: ['https://goerli-rollup.arbitrum.io/rpc'],
+        },
+      ],
+    })
+  }
   function verifyDomain() {
     setIsLoading(true)
 
@@ -99,6 +136,14 @@ export function NFTDomainForm() {
               maxWidth: ['100%', '100%', '60%'],
             }}
           >
+            {step === 0 && (
+              <>
+                <Text as="p" variant="paragraph3" sx={{ color: 'neutral80' }}>
+                  Looks like you are in wrong network. This POC supports only Arbitrum Goerli
+                  Testnet, click continue to switch to supported network.
+                </Text>
+              </>
+            )}
             {step === 1 && (
               <>
                 <Text as="p" variant="paragraph3" sx={{ color: 'neutral80' }}>
@@ -185,7 +230,7 @@ export function NFTDomainForm() {
           }}
         >
           <Text as="p" variant="paragraph3">
-            Step {step} of 3: {steps[step - 1]}
+            Step {step} of 3: {steps[step]}
           </Text>
           <Box>
             {!isSecondaryHidden && (
@@ -197,6 +242,7 @@ export function NFTDomainForm() {
               variant="tertiary"
               disabled={isPrimaryDisabled}
               onClick={() => {
+                if (step === 0) switchNetwork()
                 if (step === 1) verifyDomain()
                 if (step === 2) buyDomain()
               }}
@@ -208,6 +254,7 @@ export function NFTDomainForm() {
       </Card>
       <Box sx={{ mt: 4 }}>
         <Text>Debug:</Text>
+        <Text>ChainId: {chainId}</Text>
         <Text>Step: {step}</Text>
         <Text>Domain: "{domain}"</Text>
         <Text>Is domain taken: {String(isDomainTaken)}</Text>
