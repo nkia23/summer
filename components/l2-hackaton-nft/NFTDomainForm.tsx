@@ -1,11 +1,14 @@
-import { mintDomain } from 'blockchain/punk'
+import BigNumber from 'bignumber.js'
+import { getDomainPrice, mintDomain } from 'blockchain/punk'
+import { amountFromWei } from 'blockchain/utils'
 import { InfoSection } from 'components/infoSection/InfoSection'
 import { MessageCard } from 'components/MessageCard'
+import { WithArrow } from 'components/WithArrow'
 import { ethers } from 'ethers'
 import { AppSpinner } from 'helpers/AppSpinner'
 import { useToggle } from 'helpers/useToggle'
 import React, { useEffect, useState } from 'react'
-import { Box, Button, Card, Flex, Heading, Input, Text } from 'theme-ui'
+import { Box, Button, Card, Flex, Heading, Input, Link, Text } from 'theme-ui'
 import Web3 from 'web3'
 
 // export interface NFTDomainFormProps {}
@@ -17,9 +20,13 @@ export function NFTDomainForm() {
 
   const [chainId, setChainId] = useState<string>()
   const [address, setAddress] = useState<string>(ethers.constants.AddressZero)
+
   const [step, setStep] = useState<number>(0)
-  const [domain, setDomain] = useState<string>('')
   const [isLoading, , setIsLoading] = useToggle(false)
+
+  const [domain, setDomain] = useState<string>('')
+  const [domainPrice, setDomainPrice] = useState<string>('')
+  const [transactionHash, setTransactionHash] = useState<string>('')
   const [errors, setErrors] = useState<string[]>([])
 
   // TODO: for debugging
@@ -32,10 +39,10 @@ export function NFTDomainForm() {
   useEffect(() => {
     async function getChainId() {
       await ethereum.enable()
-      const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
 
-      setAddress(accounts[0])
+      setAddress((await ethereum.request({ method: 'eth_requestAccounts' }))[0])
       setChainId(await ethereum.request({ method: 'eth_chainId' }))
+      setDomainPrice(await getDomainPrice())
     }
     void getChainId()
   })
@@ -84,7 +91,11 @@ export function NFTDomainForm() {
   }
   function buyDomain() {
     setIsLoading(true)
-    void mintDomain(domain, address)
+    void mintDomain(domain, address, domainPrice).then((response) => {
+      setTransactionHash(response.transactionHash)
+      setIsLoading(false)
+      setStep(3)
+    })
   }
   function back() {
     setStep(step - 1)
@@ -196,7 +207,7 @@ export function NFTDomainForm() {
                   items={[
                     {
                       label: 'Domain price',
-                      value: '0.001 ETH',
+                      value: `${amountFromWei(new BigNumber(domainPrice), 'ETH')} ETH`,
                     },
                   ]}
                 />
@@ -204,13 +215,21 @@ export function NFTDomainForm() {
             )}
             {step === 3 && (
               <>
-                <Text as="p" variant="paragraph3" sx={{ mb: 3, color: 'neutral80' }}>
+                <Text as="p" variant="paragraph3" sx={{ mb: 1, color: 'neutral80' }}>
                   Congratulations!{' '}
                   <Text as="strong" sx={{ color: 'primary100' }}>
                     {domain}.oasis
                   </Text>{' '}
                   domain is now yours forever.
                 </Text>
+                <Link
+                  target="_blank"
+                  href={`https://goerli-rollup-explorer.arbitrum.io/tx/${transactionHash}`}
+                >
+                  <WithArrow variant="paragraph3" sx={{ color: 'interactive100' }}>
+                    Check your transaction on block explorer
+                  </WithArrow>
+                </Link>
               </>
             )}
             {errors.length > 0 && (

@@ -27,28 +27,41 @@ export function resolvePunkName$(context$: Observable<Context>, address: string)
   )
 }
 
-export async function mintDomain(domain: string, address: string) {
+export async function getDomainPrice(): Promise<string> {
+  const ethereum = (window as any).ethereum
+
+  const tldAddress = arbitrumGoerliAddreses['PUNK_DOMAINS_TESTOASIS_TLD_MINT']
+  const intf = new ethers.utils.Interface(['function price() external view returns(uint256)'])
+  const signer = new ethers.providers.Web3Provider(ethereum).getSigner()
+  const contract = new ethers.Contract(tldAddress, intf, signer)
+
+  return String(await contract.price())
+}
+
+export async function mintDomain(domain: string, address: string, price: string): Promise<any> {
   const ethereum = (window as any).ethereum
 
   const tldAddress = arbitrumGoerliAddreses['PUNK_DOMAINS_TESTOASIS_TLD_MINT']
   const intf = new ethers.utils.Interface([
-    'function price() external view returns(uint256)',
     'function mint(string memory _domainName, address _domainHolder, address _referrer) external payable returns(uint256)',
   ])
   const signer = new ethers.providers.Web3Provider(ethereum).getSigner()
   const contract = new ethers.Contract(tldAddress, intf, signer)
-  const selectedPrice = await contract.price()
 
   try {
     const tx = await contract.mint(domain, address, ethers.constants.AddressZero, {
-      value: String(selectedPrice),
+      value: price,
     })
 
     if (tx) {
-      await tx.wait()
+      return await tx.wait()
     }
   } catch (e) {
-    console.log(e)
-    console.log('error')
+    return new Promise((resolve, reject) => {
+      console.log(e)
+
+      // eslint-disable-next-line prefer-promise-reject-errors
+      reject({ error: e })
+    })
   }
 }
