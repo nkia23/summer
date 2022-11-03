@@ -392,12 +392,16 @@ export function UserSettings({ sx }: { sx?: SxStyleProp }) {
 
 export function UserSettingsButtonContents({ context, accountData, web3Context, active }: any) {
   const { connectionKind } = web3Context
+
   const { userIcon } = getConnectionDetails(getWalletKind(connectionKind))
 
   return (
     <Flex sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
       <Flex sx={{ alignItems: 'center' }}>
         <Icon name={userIcon!} size="auto" width="42" />
+        <Box sx={{ position: 'relative', top: 20, left: -10 }}>
+          <Icon name="optimism" width="42" height="42" />
+        </Box>
         <Text
           as="p"
           variant="paragraph3"
