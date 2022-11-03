@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js'
-import { getDomainPrice, mintDomain } from 'blockchain/punk'
+import { getDomainHolder, getDomainPrice, mintDomain } from 'blockchain/punk'
 import { amountFromWei } from 'blockchain/utils'
 import { InfoSection } from 'components/infoSection/InfoSection'
 import { MessageCard } from 'components/MessageCard'
@@ -78,16 +78,23 @@ export function NFTDomainForm() {
   }
   function verifyDomain() {
     setIsLoading(true)
-
-    // TODO: verify if domain is available and valid?
-    setTimeout(() => {
-      setIsLoading(false)
-      if (isDomainTaken) setErrors(['Selected domain is taken, please try something different'])
-      else {
-        setErrors([])
-        setStep(2)
-      }
-    }, 10)
+    void getDomainHolder(domain)
+      .then((response) => {
+        if (response === ethers.constants.AddressZero) {
+          setStep(2)
+          setErrors([])
+        } else setErrors(['Selected domain is taken, please try something different'])
+      })
+      .catch(({ error }) => {
+        setErrors([
+          error?.data?.message ||
+            error?.message ||
+            'Unable to process transaction, please try again later',
+        ])
+      })
+      .finally(() => {
+        setIsLoading(false)
+      })
   }
   function buyDomain() {
     setIsLoading(true)
@@ -95,6 +102,7 @@ export function NFTDomainForm() {
       .then((response) => {
         setTransactionHash(response.transactionHash)
         setStep(3)
+        setErrors([])
       })
       .catch(({ error }) => {
         setErrors([

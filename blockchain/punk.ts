@@ -38,6 +38,28 @@ export async function getDomainPrice(): Promise<string> {
   return String(await contract.price())
 }
 
+export async function getDomainHolder(domain: string): Promise<any> {
+  const ethereum = (window as any).ethereum
+
+  const tldAddress = arbitrumGoerliAddreses['PUNK_DOMAINS_TESTOASIS_TLD_MINT']
+  const intf = new ethers.utils.Interface([
+    'function getDomainHolder ( string _domainName ) external view returns ( address )',
+  ])
+  const signer = new ethers.providers.Web3Provider(ethereum).getSigner()
+  const contract = new ethers.Contract(tldAddress, intf, signer)
+
+  try {
+    return await contract.getDomainHolder(domain)
+  } catch (e) {
+    return new Promise((resolve, reject) => {
+      console.log(e)
+
+      // eslint-disable-next-line prefer-promise-reject-errors
+      reject({ error: e })
+    })
+  }
+}
+
 export async function mintDomain(domain: string, address: string, price: string): Promise<any> {
   const ethereum = (window as any).ethereum
 
