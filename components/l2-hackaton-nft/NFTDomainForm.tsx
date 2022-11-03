@@ -9,16 +9,16 @@ import { AppSpinner } from 'helpers/AppSpinner'
 import { useToggle } from 'helpers/useToggle'
 import React, { useEffect, useState } from 'react'
 import { Box, Button, Card, Flex, Heading, Input, Link, Text } from 'theme-ui'
-import Web3 from 'web3'
 
 // export interface NFTDomainFormProps {}
 
-const steps = ['Switch network', 'Domain verification', 'Transaction', 'Order confirmation']
+const steps = ['Switch network', 'Domain verification', 'Confirm transaction', 'Order confirmation']
+const arbitrumGoerliNetworkId = 421613
 
 export function NFTDomainForm() {
   const ethereum = (window as any).ethereum
 
-  const [chainId, setChainId] = useState<string>()
+  const [networkId, setNetworkId] = useState<number>(Number(ethereum.networkVersion))
   const [address, setAddress] = useState<string>(ethers.constants.AddressZero)
 
   const [step, setStep] = useState<number>(0)
@@ -40,25 +40,25 @@ export function NFTDomainForm() {
     async function getChainId() {
       await ethereum.enable()
 
-      setAddress((await ethereum.request({ method: 'eth_requestAccounts' }))[0])
-      setChainId(await ethereum.request({ method: 'eth_chainId' }))
-      setDomainPrice(await getDomainPrice())
+      if (address === ethers.constants.AddressZero)
+        setAddress((await ethereum.request({ method: 'eth_requestAccounts' }))[0])
+      if (networkId === arbitrumGoerliNetworkId) setDomainPrice(await getDomainPrice())
     }
     void getChainId()
-  })
+  }, [networkId])
   ethereum.on('networkChanged', function (networkId: number) {
-    setChainId(Web3.utils.utf8ToHex(networkId.toString()))
+    setNetworkId(Number(networkId))
   })
   ethereum.on('accountsChanged', function (accounts: string[]) {
     setAddress(accounts[0])
   })
 
   useEffect(() => {
-    if (chainId === '0x66eed') {
+    if (networkId === arbitrumGoerliNetworkId) {
       setStep(1)
       setIsLoading(false)
     } else setStep(0)
-  }, [chainId])
+  }, [networkId])
 
   function switchNetwork() {
     setIsLoading(true)
@@ -91,13 +91,24 @@ export function NFTDomainForm() {
   }
   function buyDomain() {
     setIsLoading(true)
-    void mintDomain(domain, address, domainPrice).then((response) => {
-      setTransactionHash(response.transactionHash)
-      setIsLoading(false)
-      setStep(3)
-    })
+    void mintDomain(domain, address, domainPrice)
+      .then((response) => {
+        setTransactionHash(response.transactionHash)
+        setStep(3)
+      })
+      .catch(({ error }) => {
+        setErrors([
+          error?.data?.message ||
+            error?.message ||
+            'Unable to process transaction, please try again later',
+        ])
+      })
+      .finally(() => {
+        setIsLoading(false)
+      })
   }
   function back() {
+    setErrors([])
     setStep(step - 1)
   }
 
@@ -209,6 +220,10 @@ export function NFTDomainForm() {
                       label: 'Domain price',
                       value: `${amountFromWei(new BigNumber(domainPrice), 'ETH')} ETH`,
                     },
+                    {
+                      label: 'Estimated gas fee',
+                      value: 'Unable to estimate',
+                    },
                   ]}
                 />
               </>
@@ -274,7 +289,7 @@ export function NFTDomainForm() {
       <Box sx={{ mt: 4 }}>
         <Text>Debug:</Text>
         <Text>Address: {address}</Text>
-        <Text>ChainId: {chainId}</Text>
+        <Text>Network ID: {networkId}</Text>
         <Text>Step: {step}</Text>
         <Text>Domain: "{domain}"</Text>
         <Text>Is domain taken: {String(isDomainTaken)}</Text>
