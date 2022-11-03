@@ -101,6 +101,7 @@ import {
   GasPriceParams,
   tokenPrices$,
 } from 'blockchain/prices'
+import { resolvePunkName$ } from 'blockchain/punk'
 import {
   createAccountBalance$,
   createAllowance$,
@@ -619,6 +620,8 @@ export function setupAppContext() {
   )
 
   const ensName$ = memoize(curry(resolveENSName$)(context$), (address) => address)
+  const punkName$ = memoize(curry(resolvePunkName$)(context$), (address) => address)
+  // console.log('oasisName', oasisName)
 
   const tokenAllowance$ = observe(onEveryBlock$, context$, tokenAllowance)
   const tokenBalanceRawForJoin$ = observe(onEveryBlock$, context$, tokenBalanceRawForJoin)
@@ -1061,7 +1064,8 @@ export function setupAppContext() {
     curry(createReclaimCollateral$)(context$, txHelpers$, proxyAddress$),
     bigNumberTostring,
   )
-  const accountData$ = createAccountData(web3Context$, balance$, vaults$, hasAave$, ensName$)
+
+  const accountData$ = createAccountData(web3Context$, balance$, vaults$, hasAave$, ensName$, punkName$)
 
   const makerOracleTokenPrices$ = memoize(
     curry(createMakerOracleTokenPrices$)(context$),
