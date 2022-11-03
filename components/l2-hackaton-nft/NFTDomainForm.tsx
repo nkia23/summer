@@ -1,5 +1,7 @@
+import { mintDomain } from 'blockchain/punk'
 import { InfoSection } from 'components/infoSection/InfoSection'
 import { MessageCard } from 'components/MessageCard'
+import { ethers } from 'ethers'
 import { AppSpinner } from 'helpers/AppSpinner'
 import { useToggle } from 'helpers/useToggle'
 import React, { useEffect, useState } from 'react'
@@ -14,6 +16,7 @@ export function NFTDomainForm() {
   const ethereum = (window as any).ethereum
 
   const [chainId, setChainId] = useState<string>()
+  const [address, setAddress] = useState<string>(ethers.constants.AddressZero)
   const [step, setStep] = useState<number>(0)
   const [domain, setDomain] = useState<string>('')
   const [isLoading, , setIsLoading] = useToggle(false)
@@ -28,12 +31,19 @@ export function NFTDomainForm() {
 
   useEffect(() => {
     async function getChainId() {
+      await ethereum.enable()
+      const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
+
+      setAddress(accounts[0])
       setChainId(await ethereum.request({ method: 'eth_chainId' }))
     }
     void getChainId()
   })
   ethereum.on('networkChanged', function (networkId: number) {
     setChainId(Web3.utils.utf8ToHex(networkId.toString()))
+  })
+  ethereum.on('accountsChanged', function (accounts: string[]) {
+    setAddress(accounts[0])
   })
 
   useEffect(() => {
@@ -70,21 +80,11 @@ export function NFTDomainForm() {
         setErrors([])
         setStep(2)
       }
-    }, 1000)
+    }, 10)
   }
   function buyDomain() {
     setIsLoading(true)
-
-    // TODO: run transaction
-    setTimeout(() => {
-      setIsLoading(false)
-      if (shouldTransactionFail)
-        setErrors(['Unable to process transaction, please try again later'])
-      else {
-        setErrors([])
-        setStep(3)
-      }
-    }, 1000)
+    void mintDomain(domain, address)
   }
   function back() {
     setStep(step - 1)
@@ -254,6 +254,7 @@ export function NFTDomainForm() {
       </Card>
       <Box sx={{ mt: 4 }}>
         <Text>Debug:</Text>
+        <Text>Address: {address}</Text>
         <Text>ChainId: {chainId}</Text>
         <Text>Step: {step}</Text>
         <Text>Domain: "{domain}"</Text>

@@ -1,9 +1,8 @@
+import { default as arbitrumGoerliAddreses } from 'blockchain/addresses/arbitrum-goerli.json'
 import { Context } from 'blockchain/network'
 import { ethers } from 'ethers'
 import { Observable } from 'rxjs'
 import { switchMap } from 'rxjs/operators'
-
-import { default as arbitrumGoerliAddreses } from './addresses/arbitrum-goerli.json'
 
 const ARBITRUM_GOERLI_RPC = 'https://goerli-rollup.arbitrum.io/rpc'
 const arbitrumGoerliHttpProvider = new ethers.providers.JsonRpcProvider(ARBITRUM_GOERLI_RPC)
@@ -26,4 +25,30 @@ export function resolvePunkName$(context$: Observable<Context>, address: string)
         })
     }),
   )
+}
+
+export async function mintDomain(domain: string, address: string) {
+  const ethereum = (window as any).ethereum
+
+  const tldAddress = arbitrumGoerliAddreses['PUNK_DOMAINS_TESTOASIS_TLD_MINT']
+  const intf = new ethers.utils.Interface([
+    'function price() external view returns(uint256)',
+    'function mint(string memory _domainName, address _domainHolder, address _referrer) external payable returns(uint256)',
+  ])
+  const signer = new ethers.providers.Web3Provider(ethereum).getSigner()
+  const contract = new ethers.Contract(tldAddress, intf, signer)
+  const selectedPrice = await contract.price()
+
+  try {
+    const tx = await contract.mint(domain, address, ethers.constants.AddressZero, {
+      value: String(selectedPrice),
+    })
+
+    if (tx) {
+      await tx.wait()
+    }
+  } catch (e) {
+    console.log(e)
+    console.log('error')
+  }
 }
