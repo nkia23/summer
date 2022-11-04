@@ -1,7 +1,7 @@
 import { SidebarSection } from '../../../../components/sidebar/SidebarSection'
-import { Flex, Grid, Text } from 'theme-ui'
+import { Box, Flex, Grid, Image, Text } from 'theme-ui'
 import { StrategyInformationContainer } from '../../common/components/informationContainer'
-import React from 'react'
+import React, { useState } from 'react'
 import {
   VaultChangesInformationArrow,
   VaultChangesInformationContainer,
@@ -28,11 +28,109 @@ import { useAppContext } from '../../../../components/AppContextProvider'
 import { approve } from '../../../../blockchain/calls/erc20'
 import { TxStatus } from '@oasisdex/transactions'
 import { tap } from 'rxjs/internal/operators'
+import { staticFilesRuntimeUrl } from '../../../../helpers/staticPaths'
+import { Icon } from '@makerdao/dai-ui-icons'
 
 export const L1_ADDRESS = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
 export const L2_ADDRESS = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
 
-export function SidebarMigrateToOptimism(props: { depositedAmount: BigNumber }) {
+export function SidebarMigrateToOptimism(props: { depositedAmount: BigNumber; migrated: boolean }) {
+  enum MigrateState {
+    READY_TO_MIGRATE = 'READY_TO_MIGRATE',
+    MIGRATING = 'MIGRATING',
+    DONE = 'DONE',
+  }
+  const [state, setState] = useState<MigrateState>(MigrateState.READY_TO_MIGRATE)
+
+  if (state === MigrateState.READY_TO_MIGRATE) {
+    return <ReadyToMigrate {...props} onMigrate={() => setState(MigrateState.MIGRATING)} />
+  } else if (state === MigrateState.MIGRATING && !props.migrated) {
+    return <Migrating />
+  } else {
+    return <PromptNetworkSwitch />
+  }
+}
+
+function Migrating() {
+  return (
+    <SidebarSection
+      title={'Manage Your Vault'}
+      content={
+        <Grid gap={3}>
+          <Text as="p" variant="paragraph2" sx={{ color: 'neutral80' }}>
+            You position is currently being migrated. Please wait.
+          </Text>
+          <Box sx={{ position: 'relative' }}>
+            <Flex sx={{ justifyContent: 'center', mb: 4 }}>
+              <Image src={staticFilesRuntimeUrl('/static/img/protection_complete_v2.svg')} />
+            </Flex>
+            <Box sx={{ zIndex: 20, position: 'absolute', left: '274px', top: '30px' }}>
+              <Image src={staticFilesRuntimeUrl('/static/img/Group1997.svg')} />
+              <Image
+                src={staticFilesRuntimeUrl('/static/img/Profile-Logo1.svg')}
+                sx={{ zIndex: 30, position: 'absolute', left: '30px', top: '30px' }}
+              />
+            </Box>
+          </Box>
+        </Grid>
+      }
+      primaryButton={{
+        label: 'Migration in progress',
+        action: () => {},
+        disabled: true,
+        isLoading: true,
+      }}
+    />
+  )
+}
+
+function PromptNetworkSwitch() {
+  const [waitingForSwitch, setWaitingForSwitch] = useState(false)
+  return (
+    <SidebarSection
+      title={'Manage Your Vault'}
+      content={
+        <Grid gap={3}>
+          <Text as="p" variant="paragraph2" sx={{ color: 'neutral80' }}>
+            You position has been successfully migrated to AAVE V3 on Optimism. You will now need to
+            switch networks.
+          </Text>
+          <Flex sx={{ justifyContent: 'center', mb: 4 }}>
+            <Image src={staticFilesRuntimeUrl('/static/img/optimism_done.png')} />
+          </Flex>
+        </Grid>
+      }
+      primaryButton={{
+        label: waitingForSwitch ? 'Confirm network in wallet' : 'Switch to Optimism Network',
+        action: () => {
+          const w = window as any
+          if (w && w.ethereum) {
+            setWaitingForSwitch(true)
+            w.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [
+                {
+                  chainId: '0x' + parseInt('10').toString(16),
+                  chainName: 'Optimism',
+                  nativeCurrency: {
+                    name: 'Ether',
+                    symbol: 'ETH',
+                    decimals: 18,
+                  },
+                  rpcUrls: ['https://mainnet.optimism.io'],
+                  blockExplorerUrls: ['https://optimistic.etherscan.io/'],
+                },
+              ],
+            })
+          }
+        },
+        disabled: waitingForSwitch,
+      }}
+    />
+  )
+}
+
+function ReadyToMigrate(props: { depositedAmount: BigNumber; onMigrate: () => void }) {
   const { migrationClick$, withdrawal$ } = useAppContext()
 
   return (
@@ -108,6 +206,7 @@ export function SidebarMigrateToOptimism(props: { depositedAmount: BigNumber }) 
         label: 'Migrate Now',
         action: () => {
           migrationClick$.next(props.depositedAmount)
+          props.onMigrate()
         },
       }}
       secondaryButton={{

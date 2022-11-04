@@ -290,6 +290,7 @@ import {
 } from '../blockchain/calls/aave/aaveWethGateway'
 import { TxMetaKind } from '../blockchain/calls/txMeta'
 import { L1_ADDRESS, L2_ADDRESS } from '../features/aave/manage/sidebars/SidebarMigrateToOptimism'
+import { tap } from 'rxjs/internal/operators'
 export type TxData =
   | OpenData
   | DepositAndGenerateData
@@ -1138,7 +1139,10 @@ export function setupAppContext() {
 
   const hasActiveAavePosition$ = hasActiveAavePosition(web3Context$, hasAave$)
 
-  function migratePosition$(txnHelpers$: Observable<TxHelpers>, migrate$: Observable<BigNumber>) {
+  function migratePosition$(
+    txnHelpers$: Observable<TxHelpers>,
+    migrate$: Observable<BigNumber>,
+  ): Observable<boolean> {
     console.log('recreating migratePosition$')
     return combineLatest(txnHelpers$, migrate$).pipe(
       switchMap(([txnHelpers, migrateAmount]) => {
@@ -1186,31 +1190,7 @@ export function setupAppContext() {
         return txData.status === TxStatus.Success
       }),
       first(),
-      switchMap(() => {
-        const w = window as any
-        if (w && w.ethereum) {
-          return of(
-            w.ethereum.request({
-              method: 'wallet_addEthereumChain',
-              params: [
-                {
-                  chainId: '0x' + parseInt('10').toString(16),
-                  chainName: 'Optimism',
-                  nativeCurrency: {
-                    name: 'Ether',
-                    symbol: 'ETH',
-                    decimals: 18,
-                  },
-                  rpcUrls: ['https://mainnet.optimism.io'],
-                  blockExplorerUrls: ['https://optimistic.etherscan.io/'],
-                },
-              ],
-            }),
-          )
-        } else {
-          return of(null)
-        }
-      }),
+
       catchError((err) => {
         throw 'error in source. Details: ' + err
       }),

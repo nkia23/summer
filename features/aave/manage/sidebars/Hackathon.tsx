@@ -34,12 +34,14 @@ export function Hackathon() {
       token: 'aWETH',
     }),
   )
-  useObservable(migrateFromAavePosition$)
+  const [migrated] = useObservable(migrateFromAavePosition$)
 
   useObservable(withdrawFromAavePosition$)
 
   const tbalL1 = l1Balance || zero
   const hasL1Deposit = tbalL1.toFixed(2) !== '0.00'
+  const [depositedThisFlow, setDepositedThisFlow] = useState(false)
+  console.log(`rendering again ${depositedThisFlow}`)
   return (
     <Grid variant="vaultContainer">
       <DetailsSectionContentCardWrapper>
@@ -55,10 +57,13 @@ export function Hackathon() {
         />
       </DetailsSectionContentCardWrapper>
       <Box>
-        {hasL1Deposit ? (
-          <SidebarMigrateToOptimism depositedAmount={l1Balance || zero} />
+        {hasL1Deposit && depositedThisFlow ? (
+          <SidebarMigrateToOptimism
+            depositedAmount={l1Balance || zero}
+            migrated={migrated || false}
+          />
         ) : (
-          <SidebarDepositEthAave onDeposit={() => console.log('deposited')} />
+          <SidebarDepositEthAave onDeposit={() => setDepositedThisFlow(true)} />
         )}
       </Box>
     </Grid>
