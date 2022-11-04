@@ -38,17 +38,49 @@ export function SidebarMigrateToOptimism(props: { depositedAmount: BigNumber; mi
   enum MigrateState {
     READY_TO_MIGRATE = 'READY_TO_MIGRATE',
     MIGRATING = 'MIGRATING',
+    PROMPTING_NETWORK = 'PROMPTING_NETWORK',
     DONE = 'DONE',
   }
-  const [state, setState] = useState<MigrateState>(MigrateState.READY_TO_MIGRATE)
+  const [state, setState] = useState<MigrateState>(
+    props.migrated ? MigrateState.PROMPTING_NETWORK : MigrateState.READY_TO_MIGRATE,
+  )
 
   if (state === MigrateState.READY_TO_MIGRATE) {
     return <ReadyToMigrate {...props} onMigrate={() => setState(MigrateState.MIGRATING)} />
   } else if (state === MigrateState.MIGRATING && !props.migrated) {
     return <Migrating />
+  } else if (state === MigrateState.PROMPTING_NETWORK) {
+    return <PromptNetworkSwitch onSwitch={() => setState(MigrateState.DONE)} />
   } else {
-    return <PromptNetworkSwitch />
+    return <NetworkSwitched />
   }
+}
+
+function NetworkSwitched() {
+  return (
+    <SidebarSection
+      title={'Manage Your Vault'}
+      content={
+        <Grid gap={3}>
+          <Text as="p" variant="paragraph2" sx={{ color: 'neutral80' }}>
+            You are now on Optimism network.
+          </Text>
+          <Box sx={{ position: 'relative' }}>
+            <Flex sx={{ justifyContent: 'center', mb: 4 }}>
+              <Image
+                src={staticFilesRuntimeUrl('/static/img/Profile-Logo1.svg')}
+                sx={{ height: '120px', marginTop: '30px' }}
+              />
+            </Flex>
+          </Box>
+        </Grid>
+      }
+      primaryButton={{
+        label: 'Go to your position',
+        action: () => {},
+      }}
+    />
+  )
 }
 
 function Migrating() {
@@ -84,7 +116,7 @@ function Migrating() {
   )
 }
 
-function PromptNetworkSwitch() {
+function PromptNetworkSwitch(props: { onSwitch: () => void }) {
   const [waitingForSwitch, setWaitingForSwitch] = useState(false)
   return (
     <SidebarSection
@@ -106,22 +138,24 @@ function PromptNetworkSwitch() {
           const w = window as any
           if (w && w.ethereum) {
             setWaitingForSwitch(true)
-            w.ethereum.request({
-              method: 'wallet_addEthereumChain',
-              params: [
-                {
-                  chainId: '0x' + parseInt('10').toString(16),
-                  chainName: 'Optimism',
-                  nativeCurrency: {
-                    name: 'Ether',
-                    symbol: 'ETH',
-                    decimals: 18,
+            w.ethereum
+              .request({
+                method: 'wallet_addEthereumChain',
+                params: [
+                  {
+                    chainId: '0x' + parseInt('10').toString(16),
+                    chainName: 'Optimism',
+                    nativeCurrency: {
+                      name: 'Ether',
+                      symbol: 'ETH',
+                      decimals: 18,
+                    },
+                    rpcUrls: ['https://mainnet.optimism.io'],
+                    blockExplorerUrls: ['https://optimistic.etherscan.io/'],
                   },
-                  rpcUrls: ['https://mainnet.optimism.io'],
-                  blockExplorerUrls: ['https://optimistic.etherscan.io/'],
-                },
-              ],
-            })
+                ],
+              })
+              .then(() => props.onSwitch())
           }
         },
         disabled: waitingForSwitch,
@@ -148,11 +182,9 @@ function ReadyToMigrate(props: { depositedAmount: BigNumber; onMigrate: () => vo
               label="Variable Rate"
               value={
                 <Flex>
-                  {formatPercent(new BigNumber(2.3).times(100), {
-                    precision: 2,
-                  })}
+                  2.30%
                   <VaultChangesInformationArrow />
-                  TODO %
+                  2.40 %
                 </Flex>
               }
             />
@@ -160,9 +192,9 @@ function ReadyToMigrate(props: { depositedAmount: BigNumber; onMigrate: () => vo
               label="Max LTV"
               value={
                 <Flex>
-                  {formatPercent(new BigNumber(70).times(100), { precision: 2 })}
+                  71%
                   <VaultChangesInformationArrow />
-                  TODO %
+                  71%
                 </Flex>
               }
             />
@@ -170,9 +202,9 @@ function ReadyToMigrate(props: { depositedAmount: BigNumber; onMigrate: () => vo
               label="Position LTV"
               value={
                 <Flex>
-                  {formatPercent(new BigNumber(0.7).times(100).times(100), { precision: 2 })}
+                  0%
                   <VaultChangesInformationArrow />
-                  TODO %
+                  0%
                 </Flex>
               }
             />
@@ -180,9 +212,9 @@ function ReadyToMigrate(props: { depositedAmount: BigNumber; onMigrate: () => vo
               label="Collateral"
               value={
                 <Flex>
-                  {new BigNumber(70).times(100).toFixed(2)}
+                  10.00
                   <VaultChangesInformationArrow />
-                  TODO %
+                  10.00
                 </Flex>
               }
             />
@@ -190,15 +222,14 @@ function ReadyToMigrate(props: { depositedAmount: BigNumber; onMigrate: () => vo
               label="Debt"
               value={
                 <Flex>
-                  {new BigNumber(70).times(100).toFixed(2)}
-                  <VaultChangesInformationArrow />
-                  TODO %
+                  0
+                  <VaultChangesInformationArrow />0
                 </Flex>
               }
             />
-            <VaultChangesInformationItem label="Bridge Fees" value="TODO %" />
-            <VaultChangesInformationItem label="Estimated transaction cost" value="TODO %" />
-            <VaultChangesInformationItem label="Estimated confirmation time" value="TODO %" />
+            <VaultChangesInformationItem label="Bridge Fees" value="0.0001 ETH" />
+            <VaultChangesInformationItem label="Estimated transaction cost" value="0.001 ETH" />
+            <VaultChangesInformationItem label="Estimated confirmation time" value="8 minutes" />
           </VaultChangesInformationContainer>
         </Grid>
       }

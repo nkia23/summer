@@ -1,7 +1,7 @@
 import { Box, Grid } from 'theme-ui'
 import { Banner } from '../../../../components/Banner'
 import { L1_ADDRESS, L2_ADDRESS, SidebarMigrateToOptimism } from './SidebarMigrateToOptimism'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { SidebarDepositEthAave } from './SidebarDepositEthAave'
 import BigNumber from 'bignumber.js'
 import { combineLatest, Observable, Subject } from 'rxjs'
@@ -40,8 +40,31 @@ export function Hackathon() {
 
   const tbalL1 = l1Balance || zero
   const hasL1Deposit = tbalL1.toFixed(2) !== '0.00'
-  const [depositedThisFlow, setDepositedThisFlow] = useState(false)
-  console.log(`rendering again ${depositedThisFlow}`)
+  const [hasOptimismChain, setHasOptimismChain] = useState(false)
+
+  useEffect(() => {
+    async function check() {
+      const w = window as any
+      if (w.ethereum) {
+        try {
+          const hasChainIfNull = await w.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [
+              {
+                chainId: '0x' + parseInt('10').toString(16),
+              },
+            ],
+          })
+          if (hasChainIfNull === null) {
+            setHasOptimismChain(true)
+          }
+        } catch (e) {}
+      }
+    }
+  }, [hasL1Deposit])
+
+  console.log(`hasL1Deposit ${hasL1Deposit}`)
+  console.log(`migratred ${migrated}`)
   return (
     <Grid variant="vaultContainer">
       <DetailsSectionContentCardWrapper>
@@ -57,13 +80,17 @@ export function Hackathon() {
         />
       </DetailsSectionContentCardWrapper>
       <Box>
-        {hasL1Deposit && depositedThisFlow ? (
+        {!hasL1Deposit && !migrated ? (
+          <SidebarDepositEthAave
+            onDeposit={() => {
+              // setHasOptimismChain(true)
+            }}
+          />
+        ) : (
           <SidebarMigrateToOptimism
             depositedAmount={l1Balance || zero}
             migrated={migrated || false}
           />
-        ) : (
-          <SidebarDepositEthAave onDeposit={() => setDepositedThisFlow(true)} />
         )}
       </Box>
     </Grid>

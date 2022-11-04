@@ -37,6 +37,7 @@ export function SidebarDepositEthAave(props: { onDeposit: (depositAmount: BigNum
   const { txHelpers$ } = useAppContext()
 
   const [withdrawTxData] = useObservable(openAavePosition$(txHelpers$, deposit$))
+  const [clicked, setClicked] = useState(false)
 
   useEffect(() => {
     if (withdrawTxData?.meta.depositAmount) {
@@ -64,8 +65,10 @@ export function SidebarDepositEthAave(props: { onDeposit: (depositAmount: BigNum
         label: 'Deposit',
         disabled: !enteredAmount || !enteredAmount.gt(0),
         action: () => {
+          setClicked(true)
           deposit$.next(enteredAmount)
         },
+        isLoading: clicked,
       }}
     />
   )
