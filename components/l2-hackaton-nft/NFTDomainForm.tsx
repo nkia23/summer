@@ -29,10 +29,6 @@ export function NFTDomainForm() {
   const [transactionHash, setTransactionHash] = useState<string>('')
   const [errors, setErrors] = useState<string[]>([])
 
-  // TODO: for debugging
-  const [isDomainTaken, toggleIsDomainTaken] = useToggle(false)
-  const [shouldTransactionFail, toggleShouldTransactionFail] = useToggle(false)
-
   const isPrimaryDisabled = (step === 1 && domain === '') || isLoading || step === 3
   const isSecondaryHidden = step === 0 || step === 1 || step === 3
 
@@ -121,194 +117,177 @@ export function NFTDomainForm() {
   }
 
   return (
-    <>
-      <Card
+    <Card
+      sx={{
+        p: 0,
+        border: 'lightMuted',
+      }}
+    >
+      <Heading
+        variant="boldParagraph2"
         sx={{
-          p: 0,
-          border: 'lightMuted',
+          mb: '24px',
+          mx: '24px',
+          py: '24px',
+          borderBottom: 'lightMuted',
         }}
       >
-        <Heading
-          variant="boldParagraph2"
-          sx={{
-            mb: '24px',
-            mx: '24px',
-            py: '24px',
-            borderBottom: 'lightMuted',
-          }}
-        >
-          Mint your domain
-        </Heading>
+        Mint your domain
+      </Heading>
+      <Box
+        sx={{
+          position: 'relative',
+          px: '24px',
+        }}
+      >
+        {isLoading && (
+          <AppSpinner
+            sx={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              left: 0,
+              bottom: 0,
+              m: 'auto',
+              zIndex: 2,
+            }}
+            variant="extraLarge"
+          />
+        )}
         <Box
           sx={{
-            position: 'relative',
-            px: '24px',
+            opacity: isLoading ? 0.5 : 1,
+            transition: 'opacity 200ms',
+            maxWidth: ['100%', '100%', '60%'],
           }}
         >
-          {isLoading && (
-            <AppSpinner
-              sx={{
-                position: 'absolute',
-                top: 0,
-                right: 0,
-                left: 0,
-                bottom: 0,
-                m: 'auto',
-                zIndex: 2,
-              }}
-              variant="extraLarge"
-            />
+          {step === 0 && (
+            <>
+              <Text as="p" variant="paragraph3" sx={{ color: 'neutral80' }}>
+                Looks like you are in wrong network. This POC supports only Arbitrum Goerli Testnet,
+                click continue to switch to supported network.
+              </Text>
+            </>
           )}
-          <Box
-            sx={{
-              opacity: isLoading ? 0.5 : 1,
-              transition: 'opacity 200ms',
-              maxWidth: ['100%', '100%', '60%'],
+          {step === 1 && (
+            <>
+              <Text as="p" variant="paragraph3" sx={{ color: 'neutral80' }}>
+                Enter your name to see if domain is available to grab.
+              </Text>
+              <Box sx={{ mt: 3, position: 'relative' }}>
+                <Input
+                  value={domain}
+                  onChange={(e) => {
+                    setDomain(e.target.value)
+                  }}
+                  sx={{
+                    pr: '74px',
+                    borderColor: 'neutral20',
+                    transition: 'border-color 200ms',
+                    '&:hover': {
+                      borderColor: 'neutral60',
+                    },
+                    '&:focus, &:focus:hover': {
+                      borderColor: 'neutral80',
+                    },
+                  }}
+                />
+                <Text
+                  sx={{
+                    position: 'absolute',
+                    height: '20px',
+                    top: 0,
+                    right: 3,
+                    lineHeight: '55px',
+                    fontSize: 5,
+                  }}
+                >
+                  .oasis
+                </Text>
+              </Box>
+            </>
+          )}
+          {step === 2 && (
+            <>
+              <Text as="p" variant="paragraph3" sx={{ mb: 3, color: 'neutral80' }}>
+                Your selected domain{' '}
+                <Text as="strong" sx={{ color: 'primary100' }}>
+                  {domain}.oasis
+                </Text>{' '}
+                is available!
+              </Text>
+              <InfoSection
+                title="Order information"
+                items={[
+                  {
+                    label: 'Domain price',
+                    value: `${amountFromWei(new BigNumber(domainPrice), 'ETH')} ETH`,
+                  },
+                  {
+                    label: 'Estimated gas fee',
+                    value: 'Unable to estimate',
+                  },
+                ]}
+              />
+            </>
+          )}
+          {step === 3 && (
+            <>
+              <Text as="p" variant="paragraph3" sx={{ mb: 1, color: 'neutral80' }}>
+                Congratulations!{' '}
+                <Text as="strong" sx={{ color: 'primary100' }}>
+                  {domain}.oasis
+                </Text>{' '}
+                domain is now yours forever.
+              </Text>
+              <Link
+                target="_blank"
+                href={`https://goerli-rollup-explorer.arbitrum.io/tx/${transactionHash}`}
+              >
+                <WithArrow variant="paragraph3" sx={{ color: 'interactive100' }}>
+                  Check your transaction on block explorer
+                </WithArrow>
+              </Link>
+            </>
+          )}
+          {errors.length > 0 && (
+            <Box sx={{ mt: 3 }}>
+              <MessageCard messages={errors} type="error" withBullet={errors.length > 1} />
+            </Box>
+          )}
+        </Box>
+      </Box>
+      <Flex
+        sx={{
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mt: '24px',
+          p: '24px',
+          borderTop: 'lightMuted',
+        }}
+      >
+        <Text as="p" variant="paragraph3">
+          Step {step} of 3: {steps[step]}
+        </Text>
+        <Box>
+          {!isSecondaryHidden && (
+            <Button variant="action" sx={{ mr: 2 }} onClick={back}>
+              Back
+            </Button>
+          )}
+          <Button
+            variant="tertiary"
+            disabled={isPrimaryDisabled}
+            onClick={() => {
+              if (step === 0) switchNetwork()
+              if (step === 1) verifyDomain()
+              if (step === 2) buyDomain()
             }}
           >
-            {step === 0 && (
-              <>
-                <Text as="p" variant="paragraph3" sx={{ color: 'neutral80' }}>
-                  Looks like you are in wrong network. This POC supports only Arbitrum Goerli
-                  Testnet, click continue to switch to supported network.
-                </Text>
-              </>
-            )}
-            {step === 1 && (
-              <>
-                <Text as="p" variant="paragraph3" sx={{ color: 'neutral80' }}>
-                  Enter your name to see if domain is available to grab.
-                </Text>
-                <Box sx={{ mt: 3, position: 'relative' }}>
-                  <Input
-                    value={domain}
-                    onChange={(e) => {
-                      setDomain(e.target.value)
-                    }}
-                    sx={{
-                      pr: '74px',
-                      borderColor: 'neutral20',
-                      transition: 'border-color 200ms',
-                      '&:hover': {
-                        borderColor: 'neutral60',
-                      },
-                      '&:focus, &:focus:hover': {
-                        borderColor: 'neutral80',
-                      },
-                    }}
-                  />
-                  <Text
-                    sx={{
-                      position: 'absolute',
-                      height: '20px',
-                      top: 0,
-                      right: 3,
-                      lineHeight: '55px',
-                      fontSize: 5,
-                    }}
-                  >
-                    .oasis
-                  </Text>
-                </Box>
-              </>
-            )}
-            {step === 2 && (
-              <>
-                <Text as="p" variant="paragraph3" sx={{ mb: 3, color: 'neutral80' }}>
-                  Your selected domain{' '}
-                  <Text as="strong" sx={{ color: 'primary100' }}>
-                    {domain}.oasis
-                  </Text>{' '}
-                  is available!
-                </Text>
-                <InfoSection
-                  title="Order information"
-                  items={[
-                    {
-                      label: 'Domain price',
-                      value: `${amountFromWei(new BigNumber(domainPrice), 'ETH')} ETH`,
-                    },
-                    {
-                      label: 'Estimated gas fee',
-                      value: 'Unable to estimate',
-                    },
-                  ]}
-                />
-              </>
-            )}
-            {step === 3 && (
-              <>
-                <Text as="p" variant="paragraph3" sx={{ mb: 1, color: 'neutral80' }}>
-                  Congratulations!{' '}
-                  <Text as="strong" sx={{ color: 'primary100' }}>
-                    {domain}.oasis
-                  </Text>{' '}
-                  domain is now yours forever.
-                </Text>
-                <Link
-                  target="_blank"
-                  href={`https://goerli-rollup-explorer.arbitrum.io/tx/${transactionHash}`}
-                >
-                  <WithArrow variant="paragraph3" sx={{ color: 'interactive100' }}>
-                    Check your transaction on block explorer
-                  </WithArrow>
-                </Link>
-              </>
-            )}
-            {errors.length > 0 && (
-              <Box sx={{ mt: 3 }}>
-                <MessageCard messages={errors} type="error" withBullet={errors.length > 1} />
-              </Box>
-            )}
-          </Box>
+            Continue
+          </Button>
         </Box>
-        <Flex
-          sx={{
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            mt: '24px',
-            p: '24px',
-            borderTop: 'lightMuted',
-          }}
-        >
-          <Text as="p" variant="paragraph3">
-            Step {step} of 3: {steps[step]}
-          </Text>
-          <Box>
-            {!isSecondaryHidden && (
-              <Button variant="action" sx={{ mr: 2 }} onClick={back}>
-                Back
-              </Button>
-            )}
-            <Button
-              variant="tertiary"
-              disabled={isPrimaryDisabled}
-              onClick={() => {
-                if (step === 0) switchNetwork()
-                if (step === 1) verifyDomain()
-                if (step === 2) buyDomain()
-              }}
-            >
-              Continue
-            </Button>
-          </Box>
-        </Flex>
-      </Card>
-      <Box sx={{ mt: 4 }}>
-        <Text>Debug:</Text>
-        <Text>Address: {address}</Text>
-        <Text>Network ID: {networkId}</Text>
-        <Text>Step: {step}</Text>
-        <Text>Domain: "{domain}"</Text>
-        <Text>Is domain taken: {String(isDomainTaken)}</Text>
-        <Text>Should transaction fail: {String(shouldTransactionFail)}</Text>
-        <Button variant="tertiary" onClick={toggleIsDomainTaken}>
-          Toggle is domain taken
-        </Button>
-        <Button variant="tertiary" onClick={toggleShouldTransactionFail}>
-          Toggle should transaction fail
-        </Button>
-      </Box>
-    </>
+      </Flex>
+    </Card>
   )
 }
