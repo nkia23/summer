@@ -2,6 +2,7 @@ import { Tracker } from 'analytics/analytics'
 import BigNumber from 'bignumber.js'
 import { networksById } from 'blockchain/config'
 import { Context } from 'blockchain/network'
+import { GasEstimationStatus } from 'helpers/form'
 import { zero } from 'helpers/zero'
 import { isEqual } from 'lodash'
 import { merge, Observable } from 'rxjs'
@@ -77,6 +78,14 @@ export function createManageMultiplyVaultAnalytics$(
   context$: Observable<Context>,
   tracker: Tracker,
 ) {
+  
+  const failedTx: Observable<ManageMultiplyConfirmTransaction> = manageMultiplyVaultState$.pipe(
+    filter((state) => state.gasEstimationStatus === GasEstimationStatus.error),
+    map((state) => ({
+      vault:state.vault.id.toString(),
+      
+    })),
+  );
   const manageMultiplyConfirmTransaction: Observable<ManageMultiplyConfirmTransaction> = manageMultiplyVaultState$.pipe(
     filter((state) => state.stage === 'manageInProgress'),
     map(
@@ -181,7 +190,7 @@ export function createManageMultiplyVaultAnalytics$(
 
   return context$.pipe(
     switchMap((context) =>
-      merge(merge(manageMultiplyConfirm, manageMultiplyConfirmTransaction)).pipe(
+      merge(merge(manageMultiplyConfirm, manageMultiplyConfirmTransaction, failedTx)).pipe(
         tap((event) => {
           const network = networksById[context.chainId].name
           const walletType = context.connectionKind
