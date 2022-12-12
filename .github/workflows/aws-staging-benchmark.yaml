@@ -1,7 +1,7 @@
 on:
   push:
     branches:
-      - dev
+      - ad/build_benchmark
 
 name: Time Benchmark for Deploy to AWS Staging
 
