@@ -10,6 +10,7 @@ WORKDIR /usr/src/app
 
 RUN apt update && apt-get install -y libudev-dev && apt-get install libusb-1.0-0
 RUN yarn --no-progress --non-interactive --frozen-lockfile
+RUN npm install
 
 ARG COMMIT_SHA
 ARG API_HOST
