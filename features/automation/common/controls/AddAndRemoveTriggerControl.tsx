@@ -1,4 +1,4 @@
-import { AutomationBotAddTriggerData } from 'blockchain/calls/automationBot'
+import { addAutomationBotTriggerV2, AutomationBotAddTriggerData } from 'blockchain/calls/automationBot'
 import {
   AutomationBotAddAggregatorTriggerData,
   removeAutomationBotAggregatorTriggers,
@@ -87,7 +87,8 @@ export function AddAndRemoveTriggerControl({
       if (isAddForm) {
         uiChanges.publish(TX_DATA_CHANGE, {
           type: 'add-trigger',
-          transaction: addTransactionMap[publishType],
+          // transaction: addTransactionMap[publishType],
+          transaction: addAutomationBotTriggerV2,
           data: addTxData,
         })
       }

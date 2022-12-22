@@ -1,7 +1,7 @@
 import { TxMeta, TxState, TxStatus } from '@oasisdex/transactions'
 import { amountFromWei } from '@oasisdex/utils'
 import BigNumber from 'bignumber.js'
-import { AutomationBotAddTriggerData } from 'blockchain/calls/automationBot'
+import { addAutomationBotTriggerV2, AutomationBotAddTriggerData } from 'blockchain/calls/automationBot'
 import {
   AutomationBotAddAggregatorTriggerData,
   AutomationBotRemoveTriggersData,
@@ -73,7 +73,10 @@ export function addAutomationTrigger(
   ethPrice: BigNumber,
   publishType: AutomationPublishType,
 ) {
-  const txDef = addTransactionMap[publishType] as TransactionDef<
+  // const txDef = addTransactionMap[publishType] as TransactionDef<
+  //   AutomationBotAddTriggerData | AutomationBotAddAggregatorTriggerData
+  // >
+  const txDef = addAutomationBotTriggerV2 as TransactionDef<
     AutomationBotAddTriggerData | AutomationBotAddAggregatorTriggerData
   >
 

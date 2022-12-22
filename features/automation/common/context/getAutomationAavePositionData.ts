@@ -21,10 +21,11 @@ export function getAutomationAavePositionData({
     context: {
       tokens: { debt: debtToken, collateral: collateralToken },
       protocolData,
+      proxyAddress,
     },
   } = aaveManageVault
   const ilkOrToken = strategyConfig.tokens?.collateral!
-
+  console.log('aaveManageVault', aaveManageVault)
   const {
     position: {
       riskRatio: { loanToValue },
@@ -51,7 +52,7 @@ export function getAutomationAavePositionData({
     liquidationPrice,
     liquidationRatio: liquidationThreshold,
     lockedCollateral,
-    owner: address,
+    owner: proxyAddress!,
     token: collateralToken,
     debtToken: debtToken,
     vaultType,
