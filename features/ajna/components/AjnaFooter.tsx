@@ -22,7 +22,7 @@ const content = [
   },
 ]
 
-export function AnjaFooter() {
+export function AjnaFooter() {
   const { t } = useTranslation()
   return (
     <Flex sx={{ justifyContent: 'center' }}>
