@@ -29,13 +29,13 @@ interface AlternateProductCardProps {
 export function AlternateProductCard({
   background,
   icon,
-  banner,
+  banner: { collateralsToBorrow, titleKey },
   button,
   header,
   labels,
 }: AlternateProductCardProps) {
-  const [clicked, setClicked] = useState(false)
   const { t } = useTranslation()
+  const [clicked, setClicked] = useState(false)
 
   const handleClick = useCallback(() => {
     setClicked(true)
@@ -47,75 +47,70 @@ export function AlternateProductCard({
       sx={{
         position: 'relative',
         width: '100%',
-        minHeight: '353px',
         height: '100%',
       }}
     >
       <Card
         sx={{
-          background,
-          border: 'unset',
-          p: 4,
           height: '100%',
+          p: '24px',
+          border: 'none',
+          borderRadius: 'large',
+          background,
           ...fadeInAnimation,
         }}
       >
         <Flex
           sx={{
-            top: '-54.5px',
-            left: '50%',
-            transform: 'translateX(-50%)',
             position: 'absolute',
-            height: '109px',
-            width: '109px',
-            backgroundColor: 'white',
-            borderRadius: '50%',
+            top: '-55px',
+            right: 0,
+            left: 0,
             justifyContent: 'center',
             alignItems: 'center',
+            height: '110px',
+            width: '110px',
+            margin: 'auto',
+            backgroundColor: 'neutral10',
+            borderRadius: '50%',
           }}
         >
-          <Icon name={icon} size={108} />
+          <Icon name={icon} size={110} />
         </Flex>
         <Flex
-          sx={{ flexDirection: 'column', justifyContent: 'flex-start', gap: 4, height: '100%' }}
+          sx={{ flexDirection: 'column', justifyContent: 'flex-start', gap: 3, height: '100%' }}
         >
-          <Flex sx={{ justifyContent: 'center', mt: '39px' }}>
+          <Flex sx={{ justifyContent: 'center', mt: '45px' }}>
             <Heading sx={{ fontSize: 5 }}>{header}</Heading>
           </Flex>
-          <Card sx={{ border: 'unset' }}>
+          <Card sx={{ py: '24px', border: 'none', borderRadius: 'large' }}>
             <Flex sx={{ flexDirection: 'column', alignItems: 'center' }}>
               <Text as="p" sx={{ color: 'neutral80', fontSize: 2 }} variant="paragraph2">
-                {t(banner.titleKey)}
+                {t(titleKey)}
               </Text>
               <Text as="p" variant="boldParagraph1" sx={{ textAlign: 'center', fontSize: 2 }}>
-                {banner.collateralsToBorrow.join(', ')}
+                {collateralsToBorrow.join(', ')}
               </Text>
             </Flex>
           </Card>
           <ProductCardLabels
             labels={labels?.map((item) => ({ title: t(item.titleKey), ...item }))}
           />
-          <Flex
-            sx={{
-              marginTop: 'auto',
-            }}
-          >
+          <Flex sx={{ mt: 'auto', px: 2 }}>
             <AppLink href={button.link} sx={{ width: '100%' }} onClick={handleClick}>
               <Button
                 variant="primary"
                 sx={{
                   width: '100%',
-                  height: '54px',
-                  fontWeight: 'semiBold',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.13)',
+                  columnGap: 1,
+                  boxShadow: 'cardLanding',
                   backgroundColor: 'primary100',
+                  cursor: 'pointer',
                   '&:hover': {
-                    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.15)',
                     backgroundColor: 'primary60',
-                    cursor: 'pointer',
                   },
                 }}
               >

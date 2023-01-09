@@ -6,21 +6,26 @@ import { Spinner } from 'theme-ui'
 
 export function MyPositionsLink() {
   const { t } = useTranslation()
-  const { amountOfPositions } = useAccount()
+  const { amountOfPositions, isConnected } = useAccount()
 
   return (
     <>
-      {t('my-positions')} (
-      {amountOfPositions !== undefined && amountOfPositions >= 0 ? (
-        amountOfPositions
-      ) : (
-        <Spinner
-          size={14}
-          color={ajnaExtensionTheme.colors.neutral80}
-          sx={{ verticalAlign: 'text-bottom' }}
-        />
+      {t('my-positions')}
+      {isConnected && (
+        <>
+          (
+          {amountOfPositions !== undefined && amountOfPositions >= 0 ? (
+            amountOfPositions
+          ) : (
+            <Spinner
+              size={14}
+              color={ajnaExtensionTheme.colors.neutral80}
+              sx={{ verticalAlign: 'text-bottom' }}
+            />
+          )}
+          )
+        </>
       )}
-      )
     </>
   )
 }

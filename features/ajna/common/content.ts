@@ -1,4 +1,4 @@
-export const productCardsAjna = {
+export const ajnaProductCards = {
   borrow: [
     {
       token: 'ETH',
@@ -63,7 +63,7 @@ export const productCardsAjna = {
   ],
 }
 
-export const benefitCardsAnja = [
+export const ajnaBenefitCards = [
   {
     header: 'landing.benefits.ajna.card-header-1',
     image: {

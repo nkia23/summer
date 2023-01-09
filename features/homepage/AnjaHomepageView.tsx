@@ -2,7 +2,8 @@ import { Icon } from '@makerdao/dai-ui-icons'
 import { getToken } from 'blockchain/tokensMetadata'
 import { AssetPill } from 'components/AssetPill'
 import { BenefitCard, BenefitCardsWrapper } from 'components/BenefitCard'
-import { HomepageTabLayout } from 'components/HomepageTabLayout'
+import { Hero } from 'components/homepage/Hero'
+import { HomepageTabLayout } from 'components/homepage/HomepageTabLayout'
 import { InfoCard } from 'components/InfoCard'
 import { LandingBanner } from 'components/LandingBanner'
 import { AppLink } from 'components/Links'
@@ -10,10 +11,9 @@ import { AlternateProductCard } from 'components/productCards/AlternateProductCa
 import { ProductCardsWrapper } from 'components/productCards/ProductCardsWrapper'
 import { TabBar } from 'components/TabBar'
 import { WithArrow } from 'components/WithArrow'
-import { benefitCardsAnja, productCardsAjna } from 'features/ajna/common/consts'
+import { ajnaBenefitCards, ajnaProductCards } from 'features/ajna/common/content'
 import { getAjnaWithArrowColorScheme } from 'features/ajna/common/helpers'
 import { otherAssets } from 'features/ajna/controls/AjnaNavigationController'
-import { Hero } from 'features/homepage/common/Hero'
 import { useAccount } from 'helpers/useAccount'
 import { useTranslation } from 'next-i18next'
 import React from 'react'
@@ -60,17 +60,11 @@ export function AnjaHomepageView() {
         }
         withButton={false}
       />
-      <Box
-        sx={{
-          width: '100%',
-          mt: '126px',
-        }}
-        id="product-cards-wrapper"
-      >
+      <Box id="product-cards-wrapper" sx={{ mt: '80px' }}>
         <TabBar
+          defaultTab="borrow"
           variant="large"
           useDropdownOnMobile
-          defaultTab="borrow"
           sections={[
             {
               label: t('landing.tabs.ajna.borrow.tabLabel'),
@@ -78,18 +72,20 @@ export function AnjaHomepageView() {
               content: (
                 <HomepageTabLayout
                   cards={
-                    <ProductCardsWrapper sx={{ mt: ['9px', '48px'], gap: ['88px', 3, 3] }}>
-                      {productCardsAjna.borrow.map((card) => (
-                        <AlternateProductCard
-                          header={t(card.headerKey, { token: card.token })}
-                          background={card.background}
-                          icon={card.icon}
-                          key={card.headerKey}
-                          banner={card.banner}
-                          button={card.button}
-                          labels={card.labels}
-                        />
-                      ))}
+                    <ProductCardsWrapper sx={{ mt: [2, '144px'], gap: ['88px', '24px'] }}>
+                      {ajnaProductCards.borrow.map(
+                        ({ background, banner, button, headerKey, icon, labels, token }) => (
+                          <AlternateProductCard
+                            header={t(headerKey, { token: token })}
+                            background={background}
+                            icon={icon}
+                            key={headerKey}
+                            banner={banner}
+                            button={button}
+                            labels={labels}
+                          />
+                        ),
+                      )}
                     </ProductCardsWrapper>
                   }
                 />
@@ -102,7 +98,7 @@ export function AnjaHomepageView() {
                 <HomepageTabLayout
                   cards={
                     <ProductCardsWrapper sx={{ mt: ['9px', '48px'], gap: ['88px', 3, 3] }}>
-                      {productCardsAjna.borrow.map((card) => (
+                      {ajnaProductCards.borrow.map((card) => (
                         <AlternateProductCard
                           header={t(card.headerKey, { token: card.token })}
                           background={card.background}
@@ -125,7 +121,7 @@ export function AnjaHomepageView() {
                 <HomepageTabLayout
                   cards={
                     <ProductCardsWrapper sx={{ mt: ['9px', '48px'], gap: ['88px', 3, 3] }}>
-                      {productCardsAjna.borrow.map((card) => (
+                      {ajnaProductCards.borrow.map((card) => (
                         <AlternateProductCard
                           header={t(card.headerKey, { token: card.token })}
                           background={card.background}
@@ -204,7 +200,7 @@ export function AnjaHomepageView() {
           {t('landing.benefits.ajna.description')}
         </Text>
         <BenefitCardsWrapper>
-          {benefitCardsAnja.map((card) => (
+          {ajnaBenefitCards.map((card) => (
             <BenefitCard
               header={card.header}
               image={card.image}

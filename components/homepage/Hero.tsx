@@ -31,7 +31,7 @@ export function Hero({ heading, isConnected, subheading, sx, withButton = true }
       <Heading as="h1" variant="header1" sx={{ mb: 3 }}>
         {heading}
       </Heading>
-      <Text as="p" variant="paragraph1" sx={{ mb: 4, color: 'neutral80', maxWidth: '740px' }}>
+      <Text as="p" variant="paragraph1" sx={{ color: 'neutral80', maxWidth: '740px' }}>
         {subheading}
       </Text>
       {withButton && (
@@ -40,7 +40,8 @@ export function Hero({ heading, isConnected, subheading, sx, withButton = true }
           variant="primary"
           sx={{
             display: 'flex',
-            margin: '0 auto',
+            mx: 'auto',
+            mt: 4,
             px: '40px',
             py: 2,
             alignItems: 'center',

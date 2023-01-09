@@ -1,8 +1,9 @@
 import { Icon } from '@makerdao/dai-ui-icons'
 import BigNumber from 'bignumber.js'
 import { useAppContext } from 'components/AppContextProvider'
+import { Hero } from 'components/homepage/Hero'
+import { HomepageTabLayout } from 'components/homepage/HomepageTabLayout'
 import { HomePageBanner } from 'components/HomePageBanner'
-import { HomepageTabLayout } from 'components/HomepageTabLayout'
 import { InfoCard } from 'components/InfoCard'
 import { AppLink } from 'components/Links'
 import {
@@ -12,7 +13,6 @@ import {
 } from 'components/productCards/ProductCardsContainer'
 import { TabBar } from 'components/TabBar'
 import { LANDING_PILLS } from 'content/landing'
-import { Hero } from 'features/homepage/common/Hero'
 import { NewReferralModal } from 'features/referralOverview/NewReferralModal'
 import { TermsOfService } from 'features/termsOfService/TermsOfService'
 import { formatAsShorthandNumbers } from 'helpers/formatters/format'
@@ -200,7 +200,7 @@ export function HomepageView() {
               value: 'multiply',
               content: (
                 <HomepageTabLayout
-                  paraText={
+                  intro={
                     <>
                       {t('landing.tabs.maker.multiply.tabParaContent')}{' '}
                       <AppLink href="/multiply" variant="inText">
@@ -224,7 +224,7 @@ export function HomepageView() {
               value: 'borrow',
               content: (
                 <HomepageTabLayout
-                  paraText={
+                  intro={
                     <>
                       <Text as="p">{t('landing.tabs.maker.borrow.tabParaContent')} </Text>
                       <AppLink href="/borrow" variant="inText">
@@ -249,7 +249,7 @@ export function HomepageView() {
               value: 'earn',
               content: (
                 <HomepageTabLayout
-                  paraText={
+                  intro={
                     <>
                       {t('landing.tabs.maker.earn.tabParaContent')}{' '}
                       <AppLink href="/earn" variant="inText">

@@ -660,7 +660,7 @@ export const oasisBaseTheme = {
       bg: 'transparent',
       color: 'neutral80',
       cursor: 'pointer',
-      transition: TRANSITIONS.global,
+      transition: 'background-color 200ms, color 200ms, border-color 200ms',
     },
     menuButton: {
       variant: 'buttons.secondary',
