@@ -1,6 +1,5 @@
 import { Icon } from '@makerdao/dai-ui-icons'
 import { getToken } from 'blockchain/tokensMetadata'
-import { useAppContext } from 'components/AppContextProvider'
 import { AssetPill } from 'components/AssetPill'
 import { BenefitCard, BenefitCardsWrapper } from 'components/BenefitCard'
 import { HomepageTabLayout } from 'components/HomepageTabLayout'
@@ -10,48 +9,20 @@ import { AppLink } from 'components/Links'
 import { AlternateProductCard } from 'components/productCards/AlternateProductCard'
 import { ProductCardsWrapper } from 'components/productCards/ProductCardsWrapper'
 import { TabBar } from 'components/TabBar'
-import { productCardsAjna } from 'features/ajna/common/consts'
+import { WithArrow } from 'components/WithArrow'
+import { benefitCardsAnja, productCardsAjna } from 'features/ajna/common/consts'
+import { getAjnaWithArrowColorScheme } from 'features/ajna/common/helpers'
 import { otherAssets } from 'features/ajna/controls/AjnaNavigationController'
-import { Hero } from 'features/homepage/HomepageView'
-import { useObservable } from 'helpers/observableHook'
-import { Trans, useTranslation } from 'next-i18next'
+import { Hero } from 'features/homepage/common/Hero'
+import { useAccount } from 'helpers/useAccount'
+import { useTranslation } from 'next-i18next'
 import React from 'react'
 import { Box, Flex, Grid, Heading, Text } from 'theme-ui'
 import { slideInAnimation } from 'theme/animations'
 
-const benefitCardsAnja = [
-  {
-    header: 'landing.benefits.ajna.card-header-1',
-    image: {
-      src: '/static/img/info_cards/benefit_1.png',
-      bottom: '0',
-    },
-    background: 'linear-gradient(160.47deg, #F0F3FD 0.35%, #FCF0FD 99.18%), #FFFFFF',
-  },
-  {
-    header: 'landing.benefits.ajna.card-header-2',
-    image: {
-      src: '/static/img/info_cards/benefit_2.png',
-      bottom: '30px',
-      width: '382px',
-      bgWidth: 'calc(100% - 64px)',
-    },
-    background: 'linear-gradient(160.47deg, #E0E8F5 0.35%, #F0FBFD 99.18%), #FFFFFF',
-  },
-  {
-    header: 'landing.benefits.ajna.card-header-3',
-    image: {
-      src: '/static/img/info_cards/benefit_3.png',
-      bottom: '0',
-    },
-    background: 'linear-gradient(147.66deg, #FEF1E1 0%, #FDF2CA 88.25%)',
-  },
-]
-
 export function AnjaHomepageView() {
   const { t } = useTranslation()
-  const { context$ } = useAppContext()
-  const [context] = useObservable(context$)
+  const { isConnected } = useAccount()
 
   return (
     <Box
@@ -64,22 +35,30 @@ export function AnjaHomepageView() {
       }}
     >
       <Hero
-        isConnected={context?.status === 'connected'}
+        isConnected={isConnected}
         sx={{
-          mt: '117px ',
+          mt: '120px ',
         }}
-        heading="landing.hero.ajna.headline"
+        heading={t('landing.hero.ajna.headline')}
         subheading={
-          <Trans
-            i18nKey="landing.hero.ajna.subheader"
-            components={[
-              <AppLink
-                // sx={{ fontSize: 'inherit' }}
-                href="https://oasis.app/anja"
-              />,
-            ]}
-          />
+          <>
+            <Text as="span">{t('landing.hero.ajna.subheader')} </Text>
+            <AppLink href="https://kb.oasis.app/">
+              <WithArrow
+                gap={1}
+                sx={{
+                  display: 'inline-block',
+                  fontSize: 4,
+                  fontWeight: 'regular',
+                  ...getAjnaWithArrowColorScheme(),
+                }}
+              >
+                {t('landing.hero.ajna.link')}
+              </WithArrow>
+            </AppLink>
+          </>
         }
+        withButton={false}
       />
       <Box
         sx={{
@@ -247,7 +226,7 @@ export function AnjaHomepageView() {
           label: t('ajna.landing-banner.linkLabel'),
         }}
         button={
-          context?.status !== 'connected' ? (
+          isConnected ? (
             <AppLink
               variant="primary"
               href="/connect"

@@ -12,6 +12,7 @@ import {
 } from 'components/productCards/ProductCardsContainer'
 import { TabBar } from 'components/TabBar'
 import { LANDING_PILLS } from 'content/landing'
+import { Hero } from 'features/homepage/common/Hero'
 import { NewReferralModal } from 'features/referralOverview/NewReferralModal'
 import { TermsOfService } from 'features/termsOfService/TermsOfService'
 import { formatAsShorthandNumbers } from 'helpers/formatters/format'
@@ -21,8 +22,8 @@ import { useFeatureToggle } from 'helpers/useFeatureToggle'
 import { useLocalStorage } from 'helpers/useLocalStorage'
 import { Trans, useTranslation } from 'next-i18next'
 import { useRouter } from 'next/router'
-import React, { ReactNode, useEffect, useState } from 'react'
-import { Box, Flex, Grid, Heading, SxProps, SxStyleProp, Text } from 'theme-ui'
+import React, { useEffect, useState } from 'react'
+import { Box, Flex, Grid, SxProps, Text } from 'theme-ui'
 import { slideInAnimation } from 'theme/animations'
 
 import { NewsletterSection } from '../newsletter/NewsletterView'
@@ -166,8 +167,8 @@ export function HomepageView() {
       {(referralsEnabled || notificationsEnabled) && <TermsOfService userReferral={userReferral} />}
       <Hero
         isConnected={context?.status === 'connected'}
-        heading="landing.hero.maker.headline"
-        subheading={<Trans i18nKey="landing.hero.maker.subheader" components={[<br />]} />}
+        heading={t('landing.hero.maker.headline')}
+        subheading={<Trans i18nKey="" components={[<br />]} />}
       />
 
       <Pills
@@ -397,68 +398,5 @@ export function HomepageView() {
         <NewsletterSection />
       </Flex>
     </Box>
-  )
-}
-
-export function Hero({
-  sx,
-  isConnected,
-  heading,
-  subheading,
-}: {
-  sx?: SxStyleProp
-  isConnected: boolean
-  heading: string
-  subheading: ReactNode
-}) {
-  const { t } = useTranslation()
-  const referralsEnabled = useFeatureToggle('Referrals')
-
-  return (
-    <Flex
-      sx={{
-        position: 'relative',
-        justifySelf: 'center',
-        alignItems: 'center',
-        textAlign: 'center',
-        mt: referralsEnabled ? '24px' : '64px',
-        mb: 5,
-        flexDirection: 'column',
-        ...sx,
-      }}
-    >
-      <Heading as="h1" variant="header1" sx={{ mb: 3 }}>
-        {t(heading)}
-      </Heading>
-      <Text variant="paragraph1" sx={{ mb: 4, color: 'neutral80', maxWidth: '740px' }}>
-        {subheading}
-      </Text>
-      <AppLink
-        href={isConnected ? '/' : '/connect'}
-        variant="primary"
-        sx={{
-          display: 'flex',
-          margin: '0 auto',
-          px: '40px',
-          py: 2,
-          alignItems: 'center',
-          '&:hover svg': {
-            transform: 'translateX(10px)',
-          },
-        }}
-        hash={isConnected ? 'product-cards-wrapper' : ''}
-      >
-        {isConnected ? t('see-products') : t('connect-wallet')}
-        <Icon
-          name="arrow_right"
-          sx={{
-            ml: 2,
-            position: 'relative',
-            left: 2,
-            transition: '0.2s',
-          }}
-        />
-      </AppLink>
-    </Flex>
   )
 }

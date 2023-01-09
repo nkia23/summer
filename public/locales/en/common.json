@@ -373,7 +373,8 @@
       },
       "ajna": {
         "headline": "Borrow and lend your crypto on Ajna",
-        "subheader": "Anja is a new money markets DeFi protocol. Benefiting from more comeptitive, market-driven parameters. <0>Learn more about Ajna on Oasis.app →</0>"
+        "subheader": "Anja is a new money markets DeFi protocol. Benefiting from more comeptitive, market-driven parameters.",
+        "link": "Learn more about Ajna on Oasis.app"
       }
     },
     "stats": {
