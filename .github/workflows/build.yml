@@ -32,6 +32,8 @@ jobs:
         run: yarn typecheck
       
       - name: Build
+        env: 
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: yarn build
 
 #  test-e2e:
