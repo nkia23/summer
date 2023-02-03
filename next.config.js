@@ -36,6 +36,13 @@ const conf = withBundleAnalyzer(
       cssModules: true,
       pageExtensions: ['mdx', 'tsx'],
       publicRuntimeConfig: publicRuntimeConfig,
+      experimental: {
+        // This is experimental but can
+        // be enabled to allow parallel threads
+        // with nextjs automatic static generation
+        workerThreads: false,
+        cpus: 1,
+      },
       webpack: function (config, { isServer }) {
         config.parallelism = 1
         config.module.rules.push({
