@@ -63,15 +63,15 @@ const conf = withBundleAnalyzer(
           splitChunks:
             !isServer && config.mode !== 'development'
               ? {
-                chunks: 'all',
-                minChunks: 2,
-                cacheGroups: {
-                  vendors: {
-                    test: /[\\/]node_modules[\\/]/,
-                    name: 'vendors-chunk',
+                  chunks: 'all',
+                  minChunks: 2,
+                  cacheGroups: {
+                    vendors: {
+                      test: /[\\/]node_modules[\\/]/,
+                      name: 'vendors-chunk',
+                    },
                   },
-                },
-              }
+                }
               : {},
         }
         // Moment.js locales take up a lot of space, so it's good to remove unused ones. "en" is there by default and can not be removed
