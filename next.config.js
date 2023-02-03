@@ -36,17 +36,25 @@ const conf = withBundleAnalyzer(
       cssModules: true,
       pageExtensions: ['mdx', 'tsx'],
       publicRuntimeConfig: publicRuntimeConfig,
+      experimental: {
+        // This is experimental but can
+        // be enabled to allow parallel threads
+        // with nextjs automatic static generation
+        workerThreads: false,
+        cpus: 1
+      },
       webpack: function (config, { isServer }) {
-        config.module.rules.push({
-          test: /\.(eot|woff|woff2|ttf|svg|png|jpg|gif)$/,
-          use: {
-            loader: 'url-loader',
-            options: {
-              limit: 100000,
-              name: '[name].[ext]',
+        config.parallelism = 1,
+          config.module.rules.push({
+            test: /\.(eot|woff|woff2|ttf|svg|png|jpg|gif)$/,
+            use: {
+              loader: 'url-loader',
+              options: {
+                limit: 100000,
+                name: '[name].[ext]',
+              },
             },
-          },
-        })
+          })
 
         config.optimization = {
           minimize: config.mode !== 'development',
@@ -62,15 +70,15 @@ const conf = withBundleAnalyzer(
           splitChunks:
             !isServer && config.mode !== 'development'
               ? {
-                  chunks: 'all',
-                  minChunks: 2,
-                  cacheGroups: {
-                    vendors: {
-                      test: /[\\/]node_modules[\\/]/,
-                      name: 'vendors-chunk',
-                    },
+                chunks: 'all',
+                minChunks: 2,
+                cacheGroups: {
+                  vendors: {
+                    test: /[\\/]node_modules[\\/]/,
+                    name: 'vendors-chunk',
                   },
-                }
+                },
+              }
               : {},
         }
         // Moment.js locales take up a lot of space, so it's good to remove unused ones. "en" is there by default and can not be removed
