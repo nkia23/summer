@@ -36,25 +36,18 @@ const conf = withBundleAnalyzer(
       cssModules: true,
       pageExtensions: ['mdx', 'tsx'],
       publicRuntimeConfig: publicRuntimeConfig,
-      experimental: {
-        // This is experimental but can
-        // be enabled to allow parallel threads
-        // with nextjs automatic static generation
-        workerThreads: false,
-        cpus: 1
-      },
       webpack: function (config, { isServer }) {
-        config.parallelism = 1,
-          config.module.rules.push({
-            test: /\.(eot|woff|woff2|ttf|svg|png|jpg|gif)$/,
-            use: {
-              loader: 'url-loader',
-              options: {
-                limit: 100000,
-                name: '[name].[ext]',
-              },
+        config.parallelism = 1
+        config.module.rules.push({
+          test: /\.(eot|woff|woff2|ttf|svg|png|jpg|gif)$/,
+          use: {
+            loader: 'url-loader',
+            options: {
+              limit: 100000,
+              name: '[name].[ext]',
             },
-          })
+          },
+        })
 
         config.optimization = {
           minimize: config.mode !== 'development',
