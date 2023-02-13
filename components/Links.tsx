@@ -66,10 +66,10 @@ function InternalLink({
 
   const actualHref = network
     ? {
-      pathname: readOnlyHref as string,
-      query: { network },
-      hash,
-    }
+        pathname: readOnlyHref as string,
+        query: { network },
+        hash,
+      }
     : { pathname: readOnlyHref as string, hash }
 
   const actualAs =
