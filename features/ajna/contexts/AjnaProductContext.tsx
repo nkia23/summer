@@ -3,6 +3,7 @@ import BigNumber from 'bignumber.js'
 import { isAppContextAvailable, useAppContext } from 'components/AppContextProvider'
 import { isBorrowStepValid } from 'features/ajna/borrow/contexts/ajnaBorrowStepManager'
 import { useAjnaBorrowFormReducto } from 'features/ajna/borrow/state/ajnaBorrowFormReducto'
+import { AjnaCombinedPosition } from 'features/ajna/common/observables/getAjnaPosition'
 import { AjnaEditingStep, AjnaFlow, AjnaProduct, AjnaStatusStep } from 'features/ajna/common/types'
 import {
   isExternalStep,
@@ -23,8 +24,6 @@ import React, {
   useState,
 } from 'react'
 
-import { AjnaPosition } from '@oasisdex/oasis-actions/lib/packages/oasis-actions/src/helpers/ajna'
-
 interface AjnaBorrowContextProviderProps {
   collateralBalance: BigNumber
   collateralPrice: BigNumber
@@ -37,7 +36,7 @@ interface AjnaBorrowContextProviderProps {
   quotePrice: BigNumber
   quoteToken: string
   owner: string
-  currentPosition: AjnaPosition
+  currentPosition: AjnaCombinedPosition
   id?: string
   steps: AjnaStatusStep[]
 }
@@ -46,10 +45,10 @@ type AjnaBorrowEnvironment = Omit<AjnaBorrowContextProviderProps, 'currentPositi
 
 export interface AjnaBorrowPosition {
   id?: string
-  currentPosition: AjnaPosition
-  setSimulation: Dispatch<SetStateAction<AjnaPosition | undefined>>
+  currentPosition: AjnaCombinedPosition
+  setSimulation: Dispatch<SetStateAction<AjnaCombinedPosition | undefined>>
   setIsLoadingSimulation: Dispatch<SetStateAction<boolean>>
-  simulation?: AjnaPosition
+  simulation?: AjnaCombinedPosition
   isSimulationLoading?: boolean
 }
 
@@ -122,7 +121,7 @@ export function AjnaBorrowContextProvider({
   const { walletAddress } = useAccount()
   const [currentStep, setCurrentStep] = useState<AjnaStatusStep>(steps[0])
   const [txDetails, setTxDetails] = useState<TxDetails>()
-  const [simulation, setSimulation] = useState<AjnaPosition>()
+  const [simulation, setSimulation] = useState<AjnaCombinedPosition>()
   const [isSimulationLoading, setIsLoadingSimulation] = useState(false)
 
   const setStep = (step: AjnaStatusStep) => {

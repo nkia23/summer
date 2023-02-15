@@ -10,6 +10,13 @@ import { distinctUntilChanged, shareReplay, switchMap } from 'rxjs/operators'
 
 import { AjnaPosition } from '@oasisdex/oasis-actions/lib/packages/oasis-actions/src/helpers/ajna'
 
+// TODO: to be removed in the future, temporary fake interface just to have it different for Earn
+export interface AjnaEarnPosition extends Omit<AjnaPosition, 'collateralAvailable'> {
+  randomProp: string
+}
+
+export type AjnaCombinedPosition = AjnaPosition | AjnaEarnPosition
+
 interface AjnaMeta extends Omit<DpmPositionData, 'product'> {
   product: AjnaProduct
 }
@@ -30,7 +37,7 @@ export type GetAjnaPositionIdentification =
   | GetAjnaPositionIdentificationWithoutPosition
 
 interface AjnaPositionWithMeta {
-  position: AjnaPosition
+  position: AjnaCombinedPosition
   meta: AjnaMeta
 }
 
@@ -60,24 +67,27 @@ export function getAjnaPosition$(
             vaultId: '0',
           }
 
+      meta.product = (meta.product as string).toLowerCase() as AjnaProduct
+
       return {
-        position: await views.ajna.getPosition(
-          {
-            proxyAddress: meta.proxy,
-            poolAddress:
-              context.ajnaPoolPairs[
-                `${meta.collateralToken}-${meta.quoteToken}` as keyof typeof context.ajnaPoolPairs
-              ].address,
-          },
-          {
-            poolInfoAddress: context.ajnaPoolInfo.address,
-            provider: context.rpcProvider,
-          },
-        ),
-        meta: {
-          ...meta,
-          product: (meta.product as string).toLowerCase() as AjnaProduct,
-        },
+        position:
+          meta.product === 'earn'
+            // TODO: replace with lib method
+            ? {} as AjnaEarnPosition
+            : await views.ajna.getPosition(
+                {
+                  proxyAddress: meta.proxy,
+                  poolAddress:
+                    context.ajnaPoolPairs[
+                      `${meta.collateralToken}-${meta.quoteToken}` as keyof typeof context.ajnaPoolPairs
+                    ].address,
+                },
+                {
+                  poolInfoAddress: context.ajnaPoolInfo.address,
+                  provider: context.rpcProvider,
+                },
+              ),
+        meta,
       }
     }),
     distinctUntilChanged(isEqual),

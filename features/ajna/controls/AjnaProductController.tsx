@@ -135,6 +135,7 @@ export function AjnaProductController({
                       {...(flow === 'manage' && { dpmProxy: ajnaPosition.meta.proxy })}
                     >
                       {ajnaPosition.meta.product === 'borrow' && <AjnaBorrowView />}
+                      {ajnaPosition.meta.product === 'earn' && <>Earn UI</>}
                     </AjnaBorrowContextProvider>
                   ) : (
                     <></>
