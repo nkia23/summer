@@ -22,7 +22,7 @@ import { allDefined } from 'helpers/allDefined'
 import { AaveProtocolData } from 'lendingProtocols/aave-v3/pipelines'
 import { isEqual } from 'lodash'
 import { combineLatest, iif, Observable, of } from 'rxjs'
-import { distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators'
+import { distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators'
 
 export function getOpenAaveV3PositionStateMachineServices(
   context$: Observable<Context>,
@@ -157,9 +157,19 @@ export function getOpenAaveV3PositionStateMachineServices(
       )
     },
     dpmProxy$: (_) => {
+      console.log('invoking userDpmProxy$')
       return userDpmProxy$.pipe(
         map((proxy) => ({ type: 'DPM_PROXY_RECEIVED', userDpmAccount: proxy })),
+        tap((p) => {
+          console.log(`dpmProxy$ pre distinct`)
+          console.log(p)
+        }),
         distinctUntilChanged(isEqual),
+        // shareReplay(1),
+        tap((p) => {
+          console.log(`dpmProxy$ post distinct`)
+          console.log(p)
+        }),
       )
     },
     aaveReserveConfiguration$: (context) => {

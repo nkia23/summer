@@ -1,14 +1,13 @@
 import { TxMeta, TxState, TxStatus } from '@oasisdex/transactions'
+import { TransactionDef } from 'blockchain/calls/callsHelpers'
+import { Context, ContextConnected } from 'blockchain/network'
+import { TxHelpers } from 'components/AppContext'
+import { transactionToX } from 'helpers/form'
 import { combineLatest, Observable, of } from 'rxjs'
 import { distinctUntilChanged } from 'rxjs/internal/operators'
 import { first, switchMap } from 'rxjs/operators'
 import { map } from 'rxjs/operators'
 import { AnyEventObject, assign, createMachine, sendParent } from 'xstate'
-
-import { TransactionDef } from '../../../blockchain/calls/callsHelpers'
-import { Context, ContextConnected } from '../../../blockchain/network'
-import { TxHelpers } from '../../../components/AppContext'
-import { transactionToX } from '../../../helpers/form'
 
 type BaseTransactionStateMachineContext = {
   txHash?: string
@@ -139,10 +138,12 @@ export function startTransactionService<T extends TxMeta, TResult = unknown>(
 ): (
   context: TransactionStateMachineContext<T, TResult>,
 ) => Observable<TransactionStateMachineEvents<T, TResult>> {
+  console.log('constructing startTransactionService')
   return (context) => {
     return combineLatest(context$, txHelpers$).pipe(
       first(),
       switchMap(([connectedContext, { send }]) => {
+        console.log('invoking startTransactionService')
         if (context.transactionParameters === undefined) {
           throw new Error('transactionParameters not set')
         }
@@ -153,12 +154,14 @@ export function startTransactionService<T extends TxMeta, TResult = unknown>(
               type: 'WAITING_FOR_APPROVAL',
             },
             (txState) => {
+              console.log('startTransactionService IN_PROGRESS')
               return of({
                 type: 'IN_PROGRESS',
                 txHash: (txState as any).txHash as string,
               })
             },
             (txState) => {
+              console.log('startTransactionService FAILURE')
               return of({
                 type: 'FAILURE',
                 txError:
@@ -169,6 +172,7 @@ export function startTransactionService<T extends TxMeta, TResult = unknown>(
               })
             },
             (txState) => {
+              console.log('startTransactionService CONFIRMED')
               return of({
                 type: 'CONFIRMED',
                 confirmations: (txState as any).confirmations,

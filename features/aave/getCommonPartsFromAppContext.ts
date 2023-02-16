@@ -8,7 +8,7 @@ import { getOpenProxyStateMachine } from 'features/stateMachines/proxy/pipelines
 import { GraphQLClient } from 'graphql-request'
 import { memoize } from 'lodash'
 import { curry } from 'ramda'
-import { Observable } from 'rxjs'
+import { BehaviorSubject, combineLatest, Observable } from 'rxjs'
 import { distinctUntilKeyChanged, map, switchMap } from 'rxjs/operators'
 
 import { getAvailableDPMProxy$ } from './common/services/getAvailableDPMProxy'
@@ -76,9 +76,15 @@ export function getCommonPartsFromAppContext({
     curry(getAvailableDPMProxy$)(userDpmProxies$, proxyConsumed$),
   )
 
-  const unconsumedDpmProxyForConnectedAccount$ = contextForAddress$.pipe(
-    switchMap(({ account }) => getAvailableDPMProxy(account)),
-  )
+  const triggerRefreshProxy$ = new BehaviorSubject(undefined)
+
+  // @ts-ignore
+  window.proxyTrigger$ = triggerRefreshProxy$
+
+  const unconsumedDpmProxyForConnectedAccount$ = combineLatest(
+    contextForAddress$,
+    triggerRefreshProxy$,
+  ).pipe(switchMap(([{ account }]) => getAvailableDPMProxy(account)))
 
   const chainlinkUSDCUSDOraclePrice$ = memoize(
     observe(onEveryBlock$, context$, getChainlinkOraclePrice('USDCUSD'), () => 'true'),
@@ -104,5 +110,6 @@ export function getCommonPartsFromAppContext({
     disconnectedGraphQLClient$,
     chainlinkUSDCUSDOraclePrice$,
     chainLinkETHUSDOraclePrice$,
+    triggerRefreshProxy$,
   }
 }

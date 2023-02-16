@@ -536,9 +536,13 @@ export function createOpenAaveStateMachine(
               userInput.riskRatio.loanToValue,
             )
         },
-        updateContext: assign((_, event) => ({
-          ...event,
-        })),
+        updateContext: assign((_, event) => {
+          console.log('update context')
+          console.log(event)
+          return {
+            ...event,
+          }
+        }),
         spawnProxyMachine: assign((_) => ({
           refProxyMachine: spawn(proxyStateMachine, 'dsProxyStateMachine'),
         })),
@@ -631,9 +635,14 @@ export function createOpenAaveStateMachine(
           ),
         })),
         calculateEffectiveProxyAddress: assign((context) => {
+          console.log(`calculateEffectiveProxyAddress`)
           if (context.blockSettingCalculatedAddresses) {
+            console.log('return early')
             return {}
           }
+
+          // @ts-ignore
+          window.proxyTrigger$.next()
 
           const shouldUseDpmProxy =
             context.strategyConfig.proxyType === ProxyType.DpmProxy &&
@@ -652,10 +661,12 @@ export function createOpenAaveStateMachine(
             ? `/aave/${protocolVersion}/${context.userDpmAccount?.vaultId}`
             : `/aave/${protocolVersion}/${contextConnected?.account}`
 
-          return {
+          const thing = {
             effectiveProxyAddress: proxyAddressToUse,
             positionRelativeAddress: address,
           }
+          console.log(thing)
+          return thing
         }),
         updateLegacyTokenBalance: assign((context, event) => {
           if (!event.balance.deposit) {

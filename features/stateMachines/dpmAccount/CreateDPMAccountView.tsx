@@ -1,4 +1,6 @@
 import { useActor } from '@xstate/react'
+import { CreateDPMAccount } from 'blockchain/calls/accountFactory'
+import { UserDpmAccount } from 'blockchain/userDpmProxies'
 import { AppLink } from 'components/Links'
 import { ListWithIcon } from 'components/ListWithIcon'
 import { SidebarSection, SidebarSectionProps } from 'components/sidebar/SidebarSection'
@@ -8,6 +10,7 @@ import {
   VaultChangesInformationContainer,
   VaultChangesInformationItem,
 } from 'components/vault/VaultChangesInformation'
+import { TransactionStateMachine } from 'features/stateMachines/transaction'
 import { staticFilesRuntimeUrl } from 'helpers/staticPaths'
 import { Trans, useTranslation } from 'next-i18next'
 import React from 'react'
@@ -201,10 +204,27 @@ function SuccessStateView({ send, state }: InternalViewsProps) {
   return <SidebarSection {...sidebarSectionProps} />
 }
 
+function ReadTransactionMachineState(props: {
+  machine: ActorRefFrom<TransactionStateMachine<CreateDPMAccount, UserDpmAccount>>
+}) {
+  const [state] = useActor(props.machine)
+  console.log(`dpm txnState machine state: ${JSON.stringify(state.value)}`)
+  return <></>
+}
+
 export function CreateDPMAccountView({ machine }: CreateDPMAccountViewProps) {
   const [state, send] = useActor(machine)
 
-  return <CreateDPMAccountViewConsumed state={state} send={send} />
+  console.log(`dpm machine state: ${JSON.stringify(state.value)}`)
+
+  return (
+    <>
+      <CreateDPMAccountViewConsumed state={state} send={send} />
+      {state.context.refTransactionMachine && (
+        <ReadTransactionMachineState machine={state.context.refTransactionMachine!} />
+      )}
+    </>
+  )
 }
 
 export function CreateDPMAccountViewConsumed({

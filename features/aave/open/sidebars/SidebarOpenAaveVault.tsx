@@ -426,6 +426,7 @@ export function SidebarOpenAaveVault() {
     return isLoading(state)
   }
 
+  console.log(`open machine state: ${JSON.stringify(state.value)}`)
   switch (true) {
     case state.matches('frontend.editing'):
       return <OpenAaveEditingStateView state={state} send={send} isLoading={loading} />
