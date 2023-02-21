@@ -32,6 +32,10 @@ const conf = withBundleAnalyzer(
         // !! WARN !!
         ignoreBuildErrors: isProduction,
       },
+      sentry: {
+        disableServerWebpackPlugin: true,
+        disableClientWebpackPlugin: true,
+      },
       productionBrowserSourceMaps: true,
       cssModules: true,
       pageExtensions: ['mdx', 'tsx'],
