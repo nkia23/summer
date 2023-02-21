@@ -20,6 +20,15 @@ jobs:
           restore-keys: |
             ${{ runner.OS }}-yarn-cache-
 
+      - name: Cache .next/cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/.next/cache
+          key: ${{ runner.os }}-nextjs-cache-${{ hashFiles('**/yarn.lock') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
+          # If source files changed but packages didn't, rebuild from a prior cache.
+          restore-keys: |
+            ${{ runner.os }}-nextjs-cache-${{ hashFiles('**/yarn.lock') }}-
+
       - name: Install
         run: yarn --no-progress --non-interactive --frozen-lockfile
 
@@ -34,6 +43,9 @@ jobs:
 
       - name: Typecheck
         run: yarn typecheck
+      
+      - name: Build
+        run: /usr/bin/time -v yarn build
 
 #  test-e2e:
 #    runs-on: ubuntu-latest
