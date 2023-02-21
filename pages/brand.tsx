@@ -207,7 +207,7 @@ function BrandAssetsPage() {
             <Box
               bg="neutral30"
               sx={{
-                borderRadius: 12,
+                borderRadius: 13,
                 borderColor: 'neutral20',
                 borderStyle: 'solid',
                 borderWidth: 1,
