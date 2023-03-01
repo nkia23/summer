@@ -1,37 +1,15 @@
-import { CacheProvider, Global } from '@emotion/core'
+
 // @ts-ignore
-import { MDXProvider } from '@mdx-js/react'
+
 import { AbstractConnector } from '@web3-react/abstract-connector'
-import { Web3ReactProvider } from '@web3-react/core'
-import { adRollPixelScript } from 'analytics/adroll'
-import { trackingEvents } from 'analytics/analytics'
-import { LOCALSTORAGE_KEY } from 'analytics/common'
-import { mixpanelInit } from 'analytics/mixpanel'
 import { readOnlyEnhanceProvider } from 'blockchain/readOnlyEnhancedProviderProxy'
-import { SetupWeb3Context } from 'blockchain/web3Context'
-import { AppContextProvider } from 'components/AppContextProvider'
-import { CookieBanner } from 'components/CookieBanner'
-import { GasEstimationContextProvider } from 'components/GasEstimationContextProvider'
-import { HeadTags, PageSEOTags } from 'components/HeadTags'
-import { AppLayout, MarketingLayoutProps } from 'components/Layouts'
-import { CustomMDXLink } from 'components/Links'
-import { NotificationSocketProvider } from 'components/NotificationSocketProvider'
-import { SharedUIProvider } from 'components/SharedUIProvider'
-import { cache } from 'emotion'
-import { WithFollowVaults } from 'features/follow/view/WithFollowVaults'
+import { MarketingLayoutProps } from 'components/Layouts'
 import { FTPolarBold, FTPolarMedium } from 'helpers/fonts'
-import { ModalProvider } from 'helpers/modalHook'
-import { loadFeatureToggles } from 'helpers/useFeatureToggle'
-import { useLocalStorage } from 'helpers/useLocalStorage'
 import { appWithTranslation, i18n } from 'next-i18next'
 import nextI18NextConfig from 'next-i18next.config.js'
 import { AppProps } from 'next/app'
-import Head from 'next/head'
-import { useRouter } from 'next/router'
-import React, { useEffect } from 'react'
-import { theme } from 'theme'
+import React from 'react'
 // @ts-ignore
-import { components, ThemeProvider } from 'theme-ui'
 import Web3 from 'web3'
 
 if (process.env.NODE_ENV !== 'production') {
@@ -106,80 +84,81 @@ const noOverlayWorkaroundScript = `
 `
 
 function App({ Component, pageProps }: AppProps & CustomAppProps) {
-  const [value, setValue] = useLocalStorage(LOCALSTORAGE_KEY, '')
-
-  const Layout = Component.layout || AppLayout
-
-  const layoutProps = Component.layoutProps
-  const router = useRouter()
-
-  const seoTags = Component.seoTags || (
-    <PageSEOTags
-      title="seo.default.title"
-      description="seo.default.description"
-      url={router.pathname || '/'}
-    />
-  )
-
-  useEffect(() => {
-    mixpanelInit()
-    const handleRouteChange = (url: string) => {
-      // track events when not in development
-      if (process.env.NODE_ENV !== 'development') {
-        trackingEvents.pageView(url)
-      }
-    }
-
-    router.events.on('routeChangeComplete', handleRouteChange)
-    loadFeatureToggles()
-    return () => {
-      router.events.off('routeChangeComplete', handleRouteChange)
-    }
-  }, [])
-
-  return (
-    <>
-      <Head>
-        {process.env.NODE_ENV !== 'production' && (
-          <script dangerouslySetInnerHTML={{ __html: noOverlayWorkaroundScript }} />
-        )}
-        {value?.enabledCookies?.marketing && (
-          <script dangerouslySetInnerHTML={{ __html: adRollPixelScript }} async />
-        )}
-
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </Head>
-      <ThemeProvider theme={theme}>
-        <CacheProvider value={cache}>
-          <MDXProvider components={{ ...components, a: CustomMDXLink }}>
-            <Global styles={globalStyles} />
-            <Web3ReactProvider {...{ getLibrary }}>
-              <AppContextProvider>
-                <ModalProvider>
-                  <HeadTags />
-                  {seoTags}
-                  <SetupWeb3Context>
-                    <SharedUIProvider>
-                      <GasEstimationContextProvider>
-                        <NotificationSocketProvider>
-                          <WithFollowVaults>
-                            <Layout {...layoutProps}>
-                              <Component {...pageProps} />
-                              <CookieBanner setValue={setValue} value={value} />
-                            </Layout>
-                          </WithFollowVaults>
-                        </NotificationSocketProvider>
-                      </GasEstimationContextProvider>
-                    </SharedUIProvider>
-                  </SetupWeb3Context>
-                </ModalProvider>
-              </AppContextProvider>
-            </Web3ReactProvider>
-          </MDXProvider>
-        </CacheProvider>
-      </ThemeProvider>
-    </>
-  )
+  return <Component {...pageProps} />
+  // const [value, setValue] = useLocalStorage(LOCALSTORAGE_KEY, '')
+  //
+  // const Layout = Component.layout || (({ children }) => <>{children}</>)
+  //
+  // const layoutProps = Component.layoutProps
+  // const router = useRouter()
+  //
+  // const seoTags = Component.seoTags || (
+  //   <PageSEOTags
+  //     title="seo.default.title"
+  //     description="seo.default.description"
+  //     url={router.pathname || '/'}
+  //   />
+  // )
+  //
+  // useEffect(() => {
+  //   mixpanelInit()
+  //   const handleRouteChange = (url: string) => {
+  //     // track events when not in development
+  //     if (process.env.NODE_ENV !== 'development') {
+  //       trackingEvents.pageView(url)
+  //     }
+  //   }
+  //
+  //   router.events.on('routeChangeComplete', handleRouteChange)
+  //   loadFeatureToggles()
+  //   return () => {
+  //     router.events.off('routeChangeComplete', handleRouteChange)
+  //   }
+  // }, [])
+  //
+  // return (
+  //   <>
+  //     <Head>
+  //       {process.env.NODE_ENV !== 'production' && (
+  //         <script dangerouslySetInnerHTML={{ __html: noOverlayWorkaroundScript }} />
+  //       )}
+  //       {value?.enabledCookies?.marketing && (
+  //         <script dangerouslySetInnerHTML={{ __html: adRollPixelScript }} async />
+  //       )}
+  //
+  //       <meta name="viewport" content="width=device-width, initial-scale=1" />
+  //     </Head>
+  //     <ThemeProvider theme={theme}>
+  //       <CacheProvider value={cache}>
+  //         <MDXProvider components={{ ...components, a: CustomMDXLink }}>
+  //           <Global styles={globalStyles} />
+  //           <Web3ReactProvider {...{ getLibrary }}>
+  //             <AppContextProvider>
+  //               <ModalProvider>
+  //                 <HeadTags />
+  //                 {seoTags}
+  //                 <SetupWeb3Context>
+  //                   <SharedUIProvider>
+  //                     <GasEstimationContextProvider>
+  //                       <NotificationSocketProvider>
+  //                         <WithFollowVaults>
+  //                           <Layout {...layoutProps}>
+  //                             <Component {...pageProps} />
+  //                             <CookieBanner setValue={setValue} value={value} />
+  //                           </Layout>
+  //                         </WithFollowVaults>
+  //                       </NotificationSocketProvider>
+  //                     </GasEstimationContextProvider>
+  //                   </SharedUIProvider>
+  //                 </SetupWeb3Context>
+  //               </ModalProvider>
+  //             </AppContextProvider>
+  //           </Web3ReactProvider>
+  //         </MDXProvider>
+  //       </CacheProvider>
+  //     </ThemeProvider>
+  //   </>
+  // )
 }
 
 export default appWithTranslation(
