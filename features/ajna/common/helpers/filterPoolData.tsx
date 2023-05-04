@@ -39,14 +39,20 @@ export function filterPoolData({ data, pair, product }: FilterPoolDataParams) {
         return {
           '90DayNetApy': formatDecimalAsPercent(payload['90DayNetApy']),
           '7DayNetApy': formatDecimalAsPercent(payload['7DayNetApy']),
-          tvl: `$${formatFiatBalance(payload.tvl)}`,
+          tvl: {
+            sortable: payload.tvl.toNumber(),
+            value: `$${formatFiatBalance(payload.tvl)}`,
+          },
           minLtv: formatDecimalAsPercent(payload.minLtv),
         }
       } else
         return {
           '90DayNetApy': <AssetsTableDataCellInactive />,
           '7DayNetApy': <AssetsTableDataCellInactive />,
-          tvl: <AssetsTableDataCellInactive />,
+          tvl: {
+            sortable: 'z',
+            value: <AssetsTableDataCellInactive />,
+          },
           minLtv: <AssetsTableDataCellInactive />,
         }
     }

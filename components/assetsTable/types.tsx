@@ -13,8 +13,16 @@ export interface AssetsTableHeaderTranslationProps {
   [key: string]: string
 }
 
-export type AssetsTableRowData = {
-  [key: string]: string | number | ReactNode
+export type AssetsTableCellContent = string | number | ReactNode
+
+export interface AssetsTableSortableCell {
+  value: AssetsTableCellContent
+  sortable: string | number
+}
+
+export type AssetsTableCell = AssetsTableCellContent | AssetsTableSortableCell
+export interface AssetsTableRowData {
+  [key: string]: AssetsTableCell
 }
 
 export interface AssetsTableProps {

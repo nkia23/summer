@@ -5,7 +5,9 @@ import {
   AssetsTableHeaderTranslationProps,
   AssetsTableProps,
   AssetsTableRowData,
+  AssetsTableSortableCell,
 } from 'components/assetsTable/types'
+import { ExpandableArrow } from 'components/dumb/ExpandableArrow'
 import { StatefulTooltip } from 'components/Tooltip'
 import { kebabCase } from 'lodash'
 import { useTranslation } from 'next-i18next'
@@ -13,6 +15,7 @@ import React, { Fragment } from 'react'
 import { Box, Flex } from 'theme-ui'
 
 interface AssetsTableHeaderCellProps {
+  isSortable: boolean
   first: boolean
   headerTranslationProps?: AssetsTableHeaderTranslationProps
   isWithFollow: boolean
@@ -73,6 +76,7 @@ export function AssetsTable({
             {rowKeys.map((label, i) => (
               <AssetsTableHeaderCell
                 key={getRowKey(i, rows[0])}
+                isSortable={(rows[0][label] as AssetsTableSortableCell).sortable !== undefined}
                 first={i === 0}
                 headerTranslationProps={headerTranslationProps}
                 isWithFollow={isWithFollow}
@@ -110,6 +114,7 @@ export function AssetsTable({
 }
 
 export function AssetsTableHeaderCell({
+  isSortable,
   first,
   headerTranslationProps,
   isWithFollow,
@@ -185,6 +190,12 @@ export function AssetsTableHeaderCell({
             <Icon name="question_o" size={16} color="neutral80" />
           </StatefulTooltip>
         )}
+        {isSortable && (
+          <Flex sx={{ flexDirection: 'column', rowGap: '2px', ml: 2 }}>
+            <ExpandableArrow direction="up" size={11} color="neutral80" />
+            <ExpandableArrow direction="down" size={11} color="neutral80" />
+          </Flex>
+        )}
       </Flex>
     </Box>
   )
@@ -222,7 +233,7 @@ export function AssetsTableDataCell({ label, row }: AssetsTableDataCellProps) {
         },
       }}
     >
-      {row[label]}
+      {(row[label] as AssetsTableSortableCell).value || row[label]}
     </Box>
   )
 }
