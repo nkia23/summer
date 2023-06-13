@@ -19,6 +19,8 @@ export async function loadSubgraph<
   params: P = {} as P,
 ): Promise<SubgraphsResponses[S][keyof SubgraphsResponses[S]]> {
   const networkId = getNetworkId() as NetworkIds
+  const customUrl = localStorage.getItem('SubgraphCustomUrl')
+
   const response = await fetch(`/api/subgraph`, {
     method: 'POST',
     body: JSON.stringify({
@@ -26,6 +28,7 @@ export async function loadSubgraph<
       method,
       params,
       networkId,
+      customUrl,
     }),
   })
 
