@@ -22,12 +22,14 @@ export function ProductCardEarnDsr() {
   const [potDsr] = useObservable(potDsr$)
   const [potTotalValueLocked] = useObservable(potTotalValueLocked$)
   const [connectedContext] = useObservable(connectedContext$)
-  const { connect } = useConnection({ initialConnect: true })
+  const { connect } = useConnection({ initialConnect: false })
   const { push } = useRedirect()
 
   const handleClick = useCallback(async () => {
     if (!connectedContext) {
-      await connect('0x1', ({ account }) => push(`${INTERNAL_LINKS.earnDSR}/${account}`))
+      await connect('0x1', {
+        onConnect: ({ account }) => push(`${INTERNAL_LINKS.earnDSR}/${account}`),
+      })
     }
   }, [connectedContext, connect, push])
 

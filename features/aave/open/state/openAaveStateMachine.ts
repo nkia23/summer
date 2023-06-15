@@ -39,7 +39,10 @@ import {
   DPMAccountStateMachine,
 } from 'features/stateMachines/dpmAccount/'
 import { ProxyResultEvent, ProxyStateMachine } from 'features/stateMachines/proxy'
-import { TransactionStateMachine } from 'features/stateMachines/transaction'
+import {
+  EthersTransactionStateMachine,
+  TransactionStateMachine,
+} from 'features/stateMachines/transaction'
 import {
   TransactionParametersStateMachine,
   TransactionParametersStateMachineEvent,
@@ -49,7 +52,7 @@ import { canOpenPosition } from 'helpers/canOpenPosition'
 import { useFeatureToggle } from 'helpers/useFeatureToggle'
 import { zero } from 'helpers/zero'
 import { LendingProtocol } from 'lendingProtocols'
-import { ActorRefFrom, assign, createMachine, send, spawn } from 'xstate'
+import { ActorRefFrom, assign, createMachine, send, sendTo, spawn } from 'xstate'
 import { pure } from 'xstate/lib/actions'
 import { MachineOptionsFrom } from 'xstate/lib/types'
 
@@ -59,10 +62,14 @@ export const totalStepsMap = {
   allowanceSteps: (needAllowance: boolean) => (needAllowance ? 1 : 0),
 }
 
+type RefTransactionMachine =
+  | ActorRefFrom<TransactionStateMachine<OperationExecutorTxMeta>>
+  | ActorRefFrom<EthersTransactionStateMachine<any>> // todo
+
 export interface OpenAaveContext extends BaseAaveContext {
   refProxyMachine?: ActorRefFrom<ProxyStateMachine>
   refDpmAccountMachine?: ActorRefFrom<ReturnType<typeof createDPMAccountStateMachine>>
-  refTransactionMachine?: ActorRefFrom<TransactionStateMachine<OperationExecutorTxMeta>>
+  refTransactionMachine?: RefTransactionMachine
   refParametersMachine?:
     | ActorRefFrom<TransactionParametersStateMachine<OpenMultiplyAaveParameters>>
     | ActorRefFrom<TransactionParametersStateMachine<OpenAaveDepositBorrowParameters>>
@@ -88,6 +95,7 @@ export type OpenAaveEvent =
   | { type: 'NEXT_STEP' }
   | { type: 'UPDATE_META_INFO'; hasOpenedPosition: boolean }
   | { type: 'RESERVE_CONFIG_UPDATED'; reserveConfig: AaveV2ReserveConfigurationData }
+  | { type: 'CREATED_MACHINE'; refTransactionMachine: RefTransactionMachine }
   | BaseAaveEvent
   | ProxyResultEvent
   | DMPAccountStateMachineResultEvents
@@ -303,13 +311,41 @@ export function createOpenAaveStateMachine(
             reviewing: {
               entry: 'eventConfirmRiskRatio',
               on: {
-                NEXT_STEP: {
-                  target: 'txInProgress',
-                  cond: 'validTransactionParameters',
-                },
+                NEXT_STEP: [
+                  {
+                    target: 'txInProgressEthers',
+                    cond: 'isEthersTransaction',
+                  },
+                  {
+                    target: 'txInProgress',
+                    cond: 'validTransactionParameters',
+                  },
+                ],
                 BACK_TO_EDITING: {
                   target: 'editing',
                   actions: 'decrementCurrentStep',
+                },
+              },
+            },
+            txInProgressEthers: {
+              entry: [],
+              invoke: {
+                src: 'runEthersTransaction',
+                id: 'runEthersTransaction',
+                onError: {
+                  target: 'txFailure',
+                },
+              },
+              on: {
+                CREATED_MACHINE: {
+                  actions: ['updateContext'],
+                },
+                TRANSACTION_COMPLETED: {
+                  target: 'txSuccess',
+                },
+                TRANSACTION_FAILED: {
+                  target: 'txFailure',
+                  actions: ['updateContext'],
                 },
               },
             },
@@ -349,9 +385,16 @@ export function createOpenAaveStateMachine(
             stopLossTxFailure: {
               entry: ['killTransactionMachine'],
               on: {
-                RETRY: {
-                  target: 'txStopLossInProgress',
-                },
+                RETRY: [
+                  {
+                    target: 'txInProgressEthers',
+                    cond: 'isEthersTransaction',
+                  },
+                  {
+                    target: 'txInProgress',
+                    cond: 'validTransactionParameters',
+                  },
+                ],
                 BACK_TO_EDITING: {
                   target: 'editing',
                 },
@@ -397,7 +440,12 @@ export function createOpenAaveStateMachine(
           actions: ['updateContext', 'calculateEffectiveProxyAddress', 'setTotalSteps'],
         },
         WEB3_CONTEXT_CHANGED: {
-          actions: ['resetWalletValues', 'updateContext', 'calculateEffectiveProxyAddress'],
+          actions: [
+            'resetWalletValues',
+            'updateContext',
+            'calculateEffectiveProxyAddress',
+            'sendSigner',
+          ],
         },
         GAS_PRICE_ESTIMATION_RECEIVED: {
           actions: 'updateContext',
@@ -469,6 +517,8 @@ export function createOpenAaveStateMachine(
           }),
         isAllowanceNeeded,
         isStopLossSet: ({ stopLossSkipped, stopLossLevel }) => !stopLossSkipped && !!stopLossLevel,
+        isEthersTransaction: ({ strategyConfig }) =>
+          strategyConfig.executeTransactionWith === 'ethers',
       },
       actions: {
         setRiskRatio: assign((context, event) => {
@@ -569,8 +619,16 @@ export function createOpenAaveStateMachine(
           }
           return undefined
         }),
-        spawnDpmProxyMachine: assign((_) => ({
-          refDpmAccountMachine: spawn(dmpAccountStateMachine, 'dmpAccountStateMachine'),
+        spawnDpmProxyMachine: assign((context) => ({
+          refDpmAccountMachine: spawn(
+            dmpAccountStateMachine.withContext({
+              ...dmpAccountStateMachine.context,
+              runWithEthers: context.strategyConfig.executeTransactionWith === 'ethers',
+              networkId: context.strategyConfig.networkId,
+              signer: (context.web3Context as ContextConnected).transactionProvider,
+            }),
+            'dmpAccountStateMachine',
+          ),
         })),
         killDpmProxyMachine: pure((context) => {
           if (context.refDpmAccountMachine && context.refDpmAccountMachine.stop) {
@@ -582,13 +640,24 @@ export function createOpenAaveStateMachine(
           if (context.strategyConfig.type === 'Borrow') {
             return {
               refParametersMachine: spawn(
-                openDepositBorrowTransactionParametersMachine,
+                openDepositBorrowTransactionParametersMachine.withContext({
+                  ...openDepositBorrowTransactionParametersMachine.context,
+                  runWithEthers: context.strategyConfig.executeTransactionWith === 'ethers',
+                  signer: (context.web3Context as ContextConnected)?.transactionProvider,
+                }),
                 'transactionParameters',
               ),
             }
           } else {
             return {
-              refParametersMachine: spawn(openMultiplyParametersMachine, 'transactionParameters'),
+              refParametersMachine: spawn(
+                openMultiplyParametersMachine.withContext({
+                  ...openMultiplyParametersMachine.context,
+                  runWithEthers: context.strategyConfig.executeTransactionWith === 'ethers',
+                  signer: (context.web3Context as ContextConnected)?.transactionProvider,
+                }),
+                'transactionParameters',
+              ),
             }
           }
         }),
@@ -804,6 +873,15 @@ export function createOpenAaveStateMachine(
             } as AutomationAddTriggerData,
           }
         }),
+        sendSigner: sendTo(
+          (context) => context.refParametersMachine!,
+          (context) => {
+            return {
+              type: 'SIGNER_CHANGED',
+              signer: (context.web3Context as ContextConnected)?.transactionProvider,
+            }
+          },
+        ),
       },
     },
   )

@@ -443,6 +443,30 @@
     "dsrwithdrawal": "Withdrew {{daiAmount}} DAI",
     "dsrdeposit": "Deposited {{daiAmount}} DAI"
   },
+  "position-history": {
+    "header": "Position History",
+    "open-position": "Open Position",
+    "deposit": "Deposit",
+    "withdraw": "Withdraw",
+    "generate": "Generate",
+    "repay": "Repay",
+    "deposit-generate": "Deposit and generate",
+    "repay-withdraw": "Repay and withdraw",
+    "move-lending-price": "Move lending price",
+    "deposit-and-move-lending-price": "Deposit and move lending price",
+    "withdraw-and-move-lending-price": "Withdraw and move lending price",
+    "claim-collateral": "Claim collateral",
+    "deposited": "Deposited",
+    "withdrawn": "Withdrawn",
+    "repaid": "Repaid",
+    "generated": "Generated",
+    "ltv": "LTV",
+    "liquidation-price": "Liquidation price",
+    "total-fees": "Total fees",
+    "origination-fee": "Origination fee",
+    "lending-price": "Lending price",
+    "event": "Event"
+  },
   "triggers": {
     "added": "added",
     "removed": "removed",
@@ -2648,7 +2672,10 @@
             "ajna-fee": "Ajna fee",
             "deposit-fee-tooltip": "Ajna has deposit fee for deposits below current utilized liquidity as to incentivize lenders to actively lend out. The deposit fee is 1 day of interest: {{value}} of deposit",
             "total-deposited-into-position": "Total deposited into Position",
-            "collateral-available-to-withdraw": "Collateral available to withdraw"
+            "collateral-available-to-withdraw": "Collateral available to withdraw",
+            "input-lending-price": "Input {{quoteToken}} Lending Price",
+            "or-enter-specific-lending-price": "Or enter specific {{priceFormat}} Lending Price",
+            "lending-price": "Lending Price"
           }
         },
         "open": {
@@ -2799,7 +2826,6 @@
     },
     "table": {
       "active": "Active",
-      "active_with_liq_risk": "Active (liq. risk)",
       "long-short": "Long or short",
       "long": "Long only",
       "passive": "Passive",
